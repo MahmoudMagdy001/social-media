@@ -94,22 +94,6 @@ class _AccountSettingState extends State<AccountSetting> {
     }
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        CustomIconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          iconData: Icons.arrow_back_ios_new,
-        ),
-        const SizedBox(width: 10),
-        const CustomText(
-          'Account Setting',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
   Widget _buildProfileImage() {
     if (newProfileImage != null) {
       imageProvider = FileImage(newProfileImage!);
@@ -226,18 +210,13 @@ class _AccountSettingState extends State<AccountSetting> {
 
   Widget _buildShimmerLoading() {
     return Scaffold(
+      appBar: appBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  _buildHeader(),
-                ],
-              ),
-              const SizedBox(height: 20),
               _buildShimmerProfileImage(),
               const SizedBox(height: 20),
               _buildShimmerTextField(),
@@ -342,6 +321,24 @@ class _AccountSettingState extends State<AccountSetting> {
     );
   }
 
+  AppBar appBar() {
+    return AppBar(
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            CustomIconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              iconData: Icons.arrow_back_ios_new,
+            ),
+            const SizedBox(width: 10),
+            const CustomText(
+              'Account Setting',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isInitialLoading) {
@@ -349,7 +346,7 @@ class _AccountSettingState extends State<AccountSetting> {
     }
 
     return Scaffold(
-      appBar: AppBar(automaticallyImplyLeading: false, title: _buildHeader()),
+      appBar: appBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),

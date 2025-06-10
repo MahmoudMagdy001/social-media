@@ -32,7 +32,6 @@ class LayoutScreen extends StatelessWidget {
           bottom: const TabBar(
             indicator: UnderlineTabIndicator(
               borderSide: BorderSide(width: 4.0, color: Colors.blue),
-              insets: EdgeInsets.symmetric(horizontal: 60.0),
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
             tabs: [
@@ -41,17 +40,23 @@ class LayoutScreen extends StatelessWidget {
               Tab(icon: Icon(Icons.storefront_outlined, size: 32)),
               Tab(icon: Icon(Icons.menu, size: 32)),
             ],
+            indicatorSize: TabBarIndicatorSize.tab,
+            enableFeedback: null,
+            tabAlignment: null,
+            indicatorAnimation: TabIndicatorAnimation.elastic,
           ),
           actions: [
             CustomIconButton(
               onPressed: () {},
               iconData: Icons.search,
               iconSize: 24,
+              tooltip: 'Search',
             ),
             CustomIconButton(
               onPressed: () {},
               iconData: Icons.message,
               iconSize: 24,
+              tooltip: 'Message',
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/screens/posts/comments_screen.dart';
+import 'package:facebook_clone/screens/posts/update_post_screen.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
@@ -83,21 +84,39 @@ class _PostItemState extends State<PostItem> {
       builder: (context) => AlertDialog(
         alignment: Alignment.center,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         icon: const Icon(
-          Icons.check_circle_outline,
-          size: 48,
+          Icons.check_circle,
+          size: 60,
           color: Colors.green,
         ),
-        title: const Text('Success'),
-        content: const Text('Post deleted successfully'),
+        title: const Text(
+          'Success',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          'Post deleted successfully.',
+          style: TextStyle(
+            fontSize: 16,
+          ),
+          textAlign: TextAlign.center,
+        ),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('OK'),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.green,
+              ),
+            ),
           ),
         ],
       ),
@@ -140,7 +159,13 @@ class _PostItemState extends State<PostItem> {
                 showOptions(context);
               }
             },
-            onUpdate: () {},
+            onUpdate: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return UpdatePostScreen(post: widget.postData);
+                },
+              ));
+            },
             currentUserUid: user?.id,
           ),
           const SizedBox(height: 12),

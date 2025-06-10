@@ -94,15 +94,28 @@ class PostService {
     await _executeWithRetry(() async {
       String? postImageUrl;
       String? postImagePath;
+
       if (imageFile != null) {
         final imageData = await _uploadPostImage(imageFile, user.id);
         final parts = imageData.split('|');
+        if (parts.length != 2) {
+          throw StateError('Invalid image data format');
+        }
         postImagePath = parts[0];
         postImageUrl = parts[1];
       }
 
-      final userData =
-          await _supabase.from(_usersTable).select().eq('id', user.id).single();
+      final userData = await _supabase
+          .from(_usersTable)
+          .select()
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (userData == null) {
+        throw StateError('User not found');
+      }
+
+      final timestamp = DateTime.now().toUtc().toIso8601String();
 
       final post = {
         'user_id': user.id,
@@ -110,9 +123,9 @@ class PostService {
         'profile_image_url': userData['profile_image'] ?? '',
         'post_text': postText.trim(),
         'post_image_url': postImageUrl,
-        'post_image_path': postImagePath, // Store the storage path
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'post_image_path': postImagePath,
+        'created_at': timestamp,
+        'updated_at': timestamp,
         'shares_count': 0,
       };
 
@@ -275,26 +288,73 @@ class PostService {
   Future<void> updatePost({
     required String postId,
     required String userId,
-    required String postText,
+    String? updatedText,
+    File? newImageFile,
+    bool removeImage = false, // NEW
   }) async {
-    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
-    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
-    if (postText.trim().isEmpty) {
-      throw ArgumentError('Post text cannot be empty');
+    if ((updatedText == null || updatedText.trim().isEmpty) &&
+        newImageFile == null &&
+        !removeImage) {
+      throw ArgumentError(
+          'Post must contain either updated text, a new image, or image removal');
     }
 
     await _executeWithRetry(() async {
-      final post =
-          await _supabase.from(_postsTable).select().eq('id', postId).single();
+      final existingPost = await _supabase
+          .from(_postsTable)
+          .select()
+          .eq('id', postId)
+          .maybeSingle();
 
-      if (post['user_id'] != userId) {
-        throw Exception('Not authorized to update this post');
+      if (existingPost == null) {
+        throw StateError('Post not found');
       }
 
-      await _supabase.from(_postsTable).update({
-        'post_text': postText.trim(),
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', postId);
+      if (existingPost['user_id'] != userId) {
+        throw StateError('You are not authorized to update this post');
+      }
+
+      String? postImageUrl = existingPost['post_image_url'];
+      String? postImagePath = existingPost['post_image_path'];
+
+      // Handle image deletion
+      if (removeImage && postImagePath != null && postImagePath.isNotEmpty) {
+        try {
+          await _supabase.storage.from(_storageBucket).remove([postImagePath]);
+        } catch (_) {
+          // Optionally log image deletion failure
+        }
+        postImageUrl = null;
+        postImagePath = null;
+      }
+
+      // Handle image replacement
+      if (newImageFile != null) {
+        if (postImagePath != null && postImagePath.isNotEmpty) {
+          try {
+            await _supabase.storage
+                .from(_storageBucket)
+                .remove([postImagePath]);
+          } catch (_) {}
+        }
+
+        final imageData = await _uploadPostImage(newImageFile, userId);
+        final parts = imageData.split('|');
+        if (parts.length != 2) {
+          throw StateError('Invalid image data format: $imageData');
+        }
+        postImagePath = parts[0];
+        postImageUrl = parts[1];
+      }
+
+      final updates = {
+        if (updatedText != null) 'post_text': updatedText.trim(),
+        'post_image_url': postImageUrl,
+        'post_image_path': postImagePath,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      };
+
+      await _supabase.from(_postsTable).update(updates).eq('id', postId);
     });
   }
 
