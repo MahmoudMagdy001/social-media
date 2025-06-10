@@ -290,9 +290,10 @@ class _AccountSettingState extends State<AccountSetting> {
             updateLoading = true;
           });
           await authService.updateUserProfile(
-              displayName: _displayNameController.text.trim(),
-              newProfileImage: newProfileImage,
-              oldImageUrl: currentProfileImage);
+            displayName: _displayNameController.text.trim(),
+            newProfileImage: newProfileImage,
+            oldImageUrl: currentProfileImage,
+          );
 
           await authService.updatePassword(
             newPassword: _passwordController.text.trim(),

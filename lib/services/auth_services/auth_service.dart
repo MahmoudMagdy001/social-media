@@ -249,7 +249,10 @@ class AuthService {
     try {
       // Delete the old image if provided
       if (oldImageUrl != null && oldImageUrl.isNotEmpty) {
-        final oldPath = Uri.parse(oldImageUrl).pathSegments.skip(1).join('/');
+        final oldPath = oldImageUrl
+            .split('/storage/v1/object/public/$_storageBucket/')
+            .last;
+
         debugPrint('Deleting old image at path: $oldPath');
 
         await _supabase.storage.from(_storageBucket).remove([oldPath]);
