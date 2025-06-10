@@ -79,13 +79,14 @@ class PostService {
     }
   }
 
-  Future<void> createPost({
-    required String postText,
-    required supabase.User user,
-    File? imageFile,
-  }) async {
-    if (postText.trim().isEmpty && imageFile == null) {
-      throw ArgumentError('Post must contain either text or an image');
+  Future<void> createPost(
+      {required String postText,
+      required supabase.User user,
+      File? imageFile,
+      File? videoFile}) async {
+    if (postText.trim().isEmpty && imageFile == null && videoFile == null) {
+      throw ArgumentError(
+          'Post must contain either text or an image or a video');
     }
     if (user.id.isEmpty) {
       throw ArgumentError('User ID cannot be empty');
@@ -94,6 +95,8 @@ class PostService {
     await _executeWithRetry(() async {
       String? postImageUrl;
       String? postImagePath;
+      String? postVideoUrl;
+      String? postVideoPath;
 
       if (imageFile != null) {
         final imageData = await _uploadPostImage(imageFile, user.id);
@@ -103,6 +106,14 @@ class PostService {
         }
         postImagePath = parts[0];
         postImageUrl = parts[1];
+      } else if (videoFile != null) {
+        final videoData = await _uploadPostVideo(videoFile, user.id);
+        final parts = videoData.split('|');
+        if (parts.length != 2) {
+          throw StateError('Invalid video data format');
+        }
+        postVideoPath = parts[0];
+        postVideoUrl = parts[1];
       }
 
       final userData = await _supabase
@@ -124,6 +135,8 @@ class PostService {
         'post_text': postText.trim(),
         'post_image_url': postImageUrl,
         'post_image_path': postImagePath,
+        'post_video_url': postVideoUrl,
+        'post_video_path': postVideoPath,
         'created_at': timestamp,
         'updated_at': timestamp,
         'shares_count': 0,
@@ -131,6 +144,46 @@ class PostService {
 
       await _supabase.from(_postsTable).insert(post);
     });
+  }
+
+  Future<String> _uploadPostVideo(File videoFile, String userId) async {
+    try {
+      final fileExt = videoFile.path.split('.').last;
+      final fileName =
+          'video_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '$userId/$fileName';
+
+      debugPrint('Uploading post video to path: $filePath');
+
+      await _supabase.storage.from(_storageBucket).upload(
+            filePath,
+            videoFile,
+            fileOptions: supabase.FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+            ),
+          );
+
+      final videoUrl =
+          _supabase.storage.from(_storageBucket).getPublicUrl(filePath);
+
+      if (videoUrl.isEmpty) {
+        throw Exception('Failed to get public URL for uploaded video');
+      }
+
+      debugPrint('Post video uploaded successfully. URL: $videoUrl');
+      return '$filePath|$videoUrl';
+    } on supabase.StorageException catch (e) {
+      debugPrint('Storage error uploading post video: [31m${e.message}[0m');
+      if (e.message.contains('row-level security policy')) {
+        throw Exception(
+            'Unable to upload post video. Check your RLS policies and bucket settings.');
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('Error uploading post video: $e');
+      rethrow;
+    }
   }
 
   Stream<List<PostDataModel>> getPosts() {

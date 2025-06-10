@@ -10,6 +10,7 @@ class PostDataModel {
   final String userId;
   final String documentId;
   final String? postImageUrl;
+  final String? postVideoUrl;
 
   PostDataModel({
     required this.postId,
@@ -21,6 +22,7 @@ class PostDataModel {
     required this.userId,
     required this.documentId,
     this.postImageUrl,
+    this.postVideoUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,6 +35,7 @@ class PostDataModel {
       'shares_count': sharesCount,
       'user_id': userId,
       'post_image_url': postImageUrl,
+      'post_video_url': postVideoUrl,
     };
   }
 
@@ -47,6 +50,7 @@ class PostDataModel {
       userId: map['user_id'] as String? ?? '',
       documentId: documentId,
       postImageUrl: map['post_image_url'] as String?,
+      postVideoUrl: map['post_video_url'] as String?,
     );
   }
 }

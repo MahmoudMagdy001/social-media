@@ -6,6 +6,7 @@ import 'package:facebook_clone/widgets/custom_button.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:facebook_clone/widgets/custom_text_field.dart';
+import 'package:facebook_clone/widgets/video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -26,6 +27,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   String? _errorMessage;
   bool _isLoading = false;
   File? _selectedImage;
+  File? _selectedVideo;
   final user = supabase.Supabase.instance.client.auth.currentUser;
 
   @override
@@ -41,6 +43,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       setState(() {
         _selectedImage = imageFile;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      _setError('Failed to pick image: $e');
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    try {
+      final File? videoFile = await ImagePickerUtils.pickVideoFromGallery();
+      if (videoFile == null) return;
+
+      setState(() {
+        _selectedVideo = videoFile;
         _errorMessage = null;
       });
     } catch (e) {
@@ -67,6 +83,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         postText: _postController.text.trim(),
         user: user!,
         imageFile: _selectedImage,
+        videoFile: _selectedVideo,
       );
 
       if (mounted) {
@@ -122,8 +139,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               children: [
                 _buildPostInput(),
                 if (_selectedImage != null) _buildImagePreview(),
+                if (_selectedVideo != null)
+                  SizedBox(
+                      height: 300,
+                      child: VideoPlayerScreen(videoUrl: _selectedVideo!.path)),
                 const SizedBox(height: 20),
-                _buildActionButtons(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildPickPhotoButton(),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    _buildPickVideoButton(),
+                  ],
+                ),
                 if (_errorMessage != null) _buildErrorMessage(),
               ],
             ),
@@ -230,7 +260,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildPickPhotoButton() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -238,6 +268,32 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: _pickImage,
           text: 'Add Photo',
           icon: const Icon(Icons.photo_library),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(Colors.transparent),
+            foregroundColor: WidgetStateProperty.all(
+              Theme.of(context).colorScheme.primary,
+            ),
+            side: WidgetStateProperty.all(
+              BorderSide(color: Theme.of(context).colorScheme.primary),
+            ),
+            minimumSize: WidgetStateProperty.all(const Size(120, 40)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPickVideoButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CustomButton(
+          onPressed: () async {
+            await _pickVideo();
+            debugPrint(_selectedVideo.toString());
+          },
+          text: 'Add Video',
+          icon: const Icon(Icons.video_camera_back),
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all(Colors.transparent),
             foregroundColor: WidgetStateProperty.all(

@@ -22,14 +22,48 @@ class ImagePickerUtils {
     }
   }
 
+  static Future<File?> pickVideoFromGallery() async {
+    try {
+      final XFile? video = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: Duration(seconds: 30),
+      );
+      if (video == null) return null;
+      debugPrint('Picked video path: ${video.path}');
+      return File(video.path);
+    } catch (e) {
+      debugPrint('Error picking video from gallery: $e');
+      return null;
+    }
+  }
+
   /// Picks an image from the camera
   static Future<File?> pickImageFromCamera() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+        maxHeight: 600,
+        maxWidth: 600,
+      );
       if (image == null) return null;
       return File(image.path);
     } catch (e) {
       debugPrint('Error picking image from camera: $e');
+      return null;
+    }
+  }
+
+  static Future<File?> pickvideoFromCamera() async {
+    try {
+      final XFile? video = await _picker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: Duration(seconds: 30),
+      );
+      if (video == null) return null;
+      return File(video.path);
+    } catch (e) {
+      debugPrint('Error picking video from camera: $e');
       return null;
     }
   }
