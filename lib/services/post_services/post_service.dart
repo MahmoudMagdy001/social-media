@@ -8,8 +8,8 @@ class PostService {
   // Constants
   static const int _maxRetries = 3;
   static const Duration _retryDelay = Duration(seconds: 1);
-  static const String _postsTable = 'posts';
   static const String _usersTable = 'users';
+  static const String _postsTable = 'posts';
   static const String _commentsTable = 'comments';
   static const String _likesTable = 'likes';
   static const String _storageBucket = 'post-images';

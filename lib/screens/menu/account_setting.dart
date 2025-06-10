@@ -349,13 +349,14 @@ class _AccountSettingState extends State<AccountSetting> {
     }
 
     return Scaffold(
+      appBar: AppBar(automaticallyImplyLeading: false, title: _buildHeader()),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildHeader(),
+              // _buildHeader(),
               const SizedBox(height: 20),
               _buildProfileImage(),
               const SizedBox(height: 20),

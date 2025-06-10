@@ -23,19 +23,23 @@ class LayoutScreen extends StatelessWidget {
         appBar: AppBar(
           centerTitle: false,
           title: CustomText(
-            'Dodybook',
+            'Social Media',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
           ),
           bottom: const TabBar(
-            indicatorColor: Colors.blue,
+            indicator: UnderlineTabIndicator(
+              borderSide: BorderSide(width: 4.0, color: Colors.blue),
+              insets: EdgeInsets.symmetric(horizontal: 60.0),
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
             tabs: [
-              Tab(icon: Icon(Icons.home, size: 35)),
-              Tab(icon: Icon(Icons.ondemand_video, size: 35)),
-              Tab(icon: Icon(Icons.storefront_outlined, size: 35)),
-              Tab(icon: Icon(Icons.menu, size: 35)),
+              Tab(icon: Icon(Icons.home, size: 32)),
+              Tab(icon: Icon(Icons.ondemand_video, size: 32)),
+              Tab(icon: Icon(Icons.storefront_outlined, size: 32)),
+              Tab(icon: Icon(Icons.menu, size: 32)),
             ],
           ),
           actions: [

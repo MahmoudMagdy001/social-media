@@ -1,3 +1,5 @@
+import 'package:facebook_clone/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class LikesScreen extends StatefulWidget {
@@ -14,8 +16,21 @@ class _LikesScreenState extends State<LikesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: false,
-        title: const Text('Likes'),
+        title: Row(
+          children: [
+            CustomIconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              iconData: Icons.arrow_back_ios_new,
+            ),
+            const SizedBox(width: 10),
+            const CustomText(
+              'Likes',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: widget.likesStream,

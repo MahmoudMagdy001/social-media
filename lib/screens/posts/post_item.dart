@@ -37,6 +37,92 @@ class _PostItemState extends State<PostItem> {
         _postService.getLikesForPost(postId: widget.postData.documentId);
   }
 
+  Future<dynamic> showCommentsModal(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: CommentsScreen(
+                  postId: widget.postData.documentId,
+                  scrollController: scrollController,
+                  likesStream: _likesStream,
+                  commentsStream: _commentsStream,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<dynamic> showOptions(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        alignment: Alignment.center,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        icon: const Icon(
+          Icons.check_circle_outline,
+          size: 48,
+          color: Colors.green,
+        ),
+        title: const Text('Success'),
+        content: const Text('Post deleted successfully'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> deletePost() async {
+    return await _postService.deletePost(
+        postId: widget.postData.documentId, userId: user!.id);
+  }
+
+  Future<void> addLike() async {
+    return await _postService.addLike(
+      postId: widget.postData.documentId,
+      userId: user!.id,
+    );
+  }
+
+  Future<void> removeLike() async {
+    return await _postService.removeLike(
+      postId: widget.postData.documentId,
+      userId: user!.id,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     (widget.postData.documentId.isNotEmpty);
@@ -48,35 +134,10 @@ class _PostItemState extends State<PostItem> {
           _PostUserSection(
             postData: widget.postData,
             onDelete: () async {
-              await _postService.deletePost(
-                  postId: widget.postData.documentId, userId: user!.id);
+              await deletePost();
               widget.onPostDeleted?.call(); // trigger refresh
-
               if (context.mounted) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    alignment: Alignment.center,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    icon: const Icon(
-                      Icons.check_circle_outline,
-                      size: 48,
-                      color: Colors.green,
-                    ),
-                    title: const Text('Success'),
-                    content: const Text('Post deleted successfully'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('OK'),
-                      ),
-                    ],
-                  ),
-                );
+                showOptions(context);
               }
             },
             onUpdate: () {},
@@ -84,6 +145,7 @@ class _PostItemState extends State<PostItem> {
           ),
           const SizedBox(height: 12),
           if (widget.postData.postText.isNotEmpty) ...[
+            /// text of post ///
             CustomText(
               widget.postData.postText,
               style:
@@ -92,6 +154,7 @@ class _PostItemState extends State<PostItem> {
             const SizedBox(height: 12),
           ],
           if (widget.postData.postImageUrl != null) ...[
+            /// image of post ///
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
@@ -104,44 +167,7 @@ class _PostItemState extends State<PostItem> {
           ],
           InkWell(
               onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => DraggableScrollableSheet(
-                    initialChildSize: 0.9,
-                    minChildSize: 0.5,
-                    maxChildSize: 0.9,
-                    builder: (context, scrollController) => Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(20)),
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          Expanded(
-                            child: CommentsScreen(
-                              postId: widget.postData.documentId,
-                              scrollController: scrollController,
-                              likesStream: _likesStream,
-                              commentsStream: _commentsStream,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+                showCommentsModal(context);
                 debugPrint(
                     "Comment button pressed for post: ${widget.postData.documentId}");
               },
@@ -175,7 +201,8 @@ class _PostItemState extends State<PostItem> {
             }
 
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
               child: Row(
                 children: [
                   if (likesCount != 0)
@@ -233,11 +260,8 @@ class _PostItemState extends State<PostItem> {
           final hasLiked = asyncSnapshot.data ?? false;
           if (hasLiked) {
             return TextButton.icon(
-              onPressed: () {
-                _postService.removeLike(
-                  postId: widget.postData.documentId,
-                  userId: user!.id,
-                );
+              onPressed: () async {
+                await removeLike();
               },
               icon: Icon(Icons.thumb_up_alt_rounded,
                   color: theme.colorScheme.primary, size: 20),
@@ -254,13 +278,8 @@ class _PostItemState extends State<PostItem> {
             );
           }
           return TextButton.icon(
-            onPressed: () {
-              debugPrint(
-                  "Like button pressed for post: ${widget.postData.documentId}");
-              _postService.addLike(
-                postId: widget.postData.documentId,
-                userId: user!.id,
-              );
+            onPressed: () async {
+              await addLike();
             },
             icon: Icon(Icons.thumb_up_alt_outlined,
                 color: theme.colorScheme.onSurface.withAlpha(100), size: 20),
@@ -279,46 +298,7 @@ class _PostItemState extends State<PostItem> {
     final theme = Theme.of(context);
     return TextButton.icon(
       onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => DraggableScrollableSheet(
-            initialChildSize: 0.9,
-            minChildSize: 0.5,
-            maxChildSize: 0.9,
-            builder: (context, scrollController) => Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Expanded(
-                    child: CommentsScreen(
-                      postId: widget.postData.documentId,
-                      scrollController: scrollController,
-                      likesStream: likesStream,
-                      commentsStream: _commentsStream,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-        debugPrint(
-            "Comment button pressed for post: ${widget.postData.documentId}");
+        showCommentsModal(context);
       },
       icon: Icon(Icons.chat_bubble_outline_rounded,
           color: theme.colorScheme.onSurface.withAlpha(150), size: 20),
