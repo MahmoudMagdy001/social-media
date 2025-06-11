@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:facebook_clone/models/reels_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/models/comments_model.dart';
@@ -10,6 +11,7 @@ class PostService {
   static const Duration _retryDelay = Duration(seconds: 1);
   static const String _usersTable = 'users';
   static const String _postsTable = 'posts';
+  static const String _reelsTable = 'reels';
   static const String _commentsTable = 'comments';
   static const String _likesTable = 'likes';
   static const String _storageBucket = 'post-images';
@@ -79,71 +81,88 @@ class PostService {
     }
   }
 
-  Future<void> createPost(
-      {required String postText,
-      required supabase.User user,
-      File? imageFile,
-      File? videoFile}) async {
+  Future<void> createPost({
+    required String postText,
+    required supabase.User user,
+    File? imageFile,
+    File? videoFile,
+  }) async {
     if (postText.trim().isEmpty && imageFile == null && videoFile == null) {
       throw ArgumentError(
-          'Post must contain either text or an image or a video');
+          'Post must contain either text, an image, or a video');
     }
+
     if (user.id.isEmpty) {
       throw ArgumentError('User ID cannot be empty');
     }
 
-    await _executeWithRetry(() async {
-      String? postImageUrl;
-      String? postImagePath;
-      String? postVideoUrl;
-      String? postVideoPath;
+    String? postImageUrl;
+    String? postImagePath;
+    String? postVideoUrl;
+    String? postVideoPath;
 
-      if (imageFile != null) {
-        final imageData = await _uploadPostImage(imageFile, user.id);
-        final parts = imageData.split('|');
-        if (parts.length != 2) {
-          throw StateError('Invalid image data format');
-        }
-        postImagePath = parts[0];
-        postImageUrl = parts[1];
-      } else if (videoFile != null) {
-        final videoData = await _uploadPostVideo(videoFile, user.id);
-        final parts = videoData.split('|');
-        if (parts.length != 2) {
-          throw StateError('Invalid video data format');
-        }
-        postVideoPath = parts[0];
-        postVideoUrl = parts[1];
+    // Upload image if provided
+    if (imageFile != null) {
+      final imageData = await _uploadPostImage(imageFile, user.id);
+      final parts = imageData.split('|');
+      if (parts.length != 2) {
+        throw StateError('Invalid image data format');
       }
+      postImagePath = parts[0];
+      postImageUrl = parts[1];
+    }
 
-      final userData = await _supabase
-          .from(_usersTable)
-          .select()
-          .eq('id', user.id)
-          .maybeSingle();
-
-      if (userData == null) {
-        throw StateError('User not found');
+    // Upload video if provided
+    if (videoFile != null) {
+      final videoData = await _uploadPostVideo(videoFile, user.id);
+      final parts = videoData.split('|');
+      if (parts.length != 2) {
+        throw StateError('Invalid video data format');
       }
+      postVideoPath = parts[0];
+      postVideoUrl = parts[1];
+    }
 
-      final timestamp = DateTime.now().toUtc().toIso8601String();
+    final userData = await _supabase
+        .from(_usersTable)
+        .select()
+        .eq('id', user.id)
+        .maybeSingle();
 
-      final post = {
-        'user_id': user.id,
-        'username': userData['display_name'] ?? 'Anonymous',
-        'profile_image_url': userData['profile_image'] ?? '',
-        'post_text': postText.trim(),
-        'post_image_url': postImageUrl,
-        'post_image_path': postImagePath,
+    if (userData == null) {
+      throw StateError('User not found');
+    }
+
+    final timestamp = DateTime.now().toUtc().toIso8601String();
+
+    // Shared metadata
+    final commonData = {
+      'user_id': user.id,
+      'username': userData['display_name'] ?? 'Anonymous',
+      'profile_image_url': userData['profile_image'] ?? '',
+      'post_text': postText.trim(),
+      'created_at': timestamp,
+      'updated_at': timestamp,
+      'shares_count': 0,
+    };
+
+    if (videoFile != null) {
+      // Add video fields for reels only
+      final reelData = {
+        ...commonData,
         'post_video_url': postVideoUrl,
         'post_video_path': postVideoPath,
-        'created_at': timestamp,
-        'updated_at': timestamp,
-        'shares_count': 0,
       };
-
-      await _supabase.from(_postsTable).insert(post);
-    });
+      await _supabase.from(_reelsTable).insert(reelData);
+    } else {
+      // Add image fields for standard post (if any)
+      final postData = {
+        ...commonData,
+        if (postImageUrl != null) 'post_image_url': postImageUrl,
+        if (postImagePath != null) 'post_image_path': postImagePath,
+      };
+      await _supabase.from(_postsTable).insert(postData);
+    }
   }
 
   Future<String> _uploadPostVideo(File videoFile, String userId) async {
@@ -186,15 +205,32 @@ class PostService {
     }
   }
 
-  Stream<List<PostDataModel>> getPosts() {
+  Future<List<PostDataModel>> getPosts() async {
     try {
-      return _supabase
+      final response = await _supabase
           .from(_postsTable)
-          .stream(primaryKey: ['id'])
-          .order('created_at', ascending: false)
-          .map((events) => events.map(_mapToPost).toList());
+          .select()
+          .order('created_at', ascending: false);
+
+      return (response as List).map((item) => _mapToPost(item)).toList();
     } catch (e) {
       debugPrint('Error getting posts: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<ReelModel>> getReels() async {
+    try {
+      final response = await _supabase
+          .from('reels')
+          .select(
+              'id, user_id, username, profile_image_url, post_text, post_video_url, created_at')
+          .not('post_video_url', 'is', null)
+          .order('created_at', ascending: false);
+
+      return (response as List).map((e) => ReelModel.fromMap(e)).toList();
+    } catch (e) {
+      debugPrint('Error fetching reels: $e');
       rethrow;
     }
   }

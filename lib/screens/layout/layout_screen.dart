@@ -1,4 +1,5 @@
 import 'package:facebook_clone/screens/menu/menu_screen.dart';
+import 'package:facebook_clone/screens/reels/reels_screen.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,8 @@ class LayoutScreen extends StatelessWidget {
           child: TabBarView(
             children: [
               PostsScreen(authService: authService),
-              const Center(child: Text('Watch')),
+              ReelsScreen(),
+              // const Center(child: Text('Watch')),
               const Center(child: Text('Market')),
               MenuScreen(authService: authService),
             ],

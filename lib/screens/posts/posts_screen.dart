@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import '../../models/post_data_model.dart';
 import 'post_item.dart';
 import 'post_shimmer_item.dart';
-import 'package:facebook_clone/services/auth_services/auth_service.dart'; // Assuming this exists
-import 'package:facebook_clone/services/post_services/post_service.dart'; // Or your actual PostService file
+import 'package:facebook_clone/services/auth_services/auth_service.dart';
+import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 
 class PostsScreen extends StatefulWidget {
@@ -22,9 +22,23 @@ class PostsScreen extends StatefulWidget {
 
 class _PostsScreenState extends State<PostsScreen>
     with AutomaticKeepAliveClientMixin<PostsScreen> {
+  final PostService _postService = PostService();
+  late Future<List<PostDataModel>> _postsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _postsFuture = _postService.getPosts();
+  }
+
+  void _refreshPosts() {
+    setState(() {
+      _postsFuture = _postService.getPosts();
+    });
+  }
+
   @override
   bool get wantKeepAlive => true;
-  final PostService _postService = PostService();
 
   @override
   Widget build(BuildContext context) {
@@ -46,24 +60,20 @@ class _PostsScreenState extends State<PostsScreen>
         tooltip: 'Create Post',
         onPressed: () async {
           final result = await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) {
-              return CreatePostScreen();
-            },
+            builder: (context) => CreatePostScreen(),
           ));
           if (result == true) {
-            setState(() {});
+            _refreshPosts();
           }
         },
-        child: const Icon(
-          Icons.add,
-        ),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildPostsList() {
-    return StreamBuilder<List<PostDataModel>>(
-      stream: _postService.getPosts(),
+    return FutureBuilder<List<PostDataModel>>(
+      future: _postsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const _ShimmerList();
@@ -84,10 +94,11 @@ class _PostsScreenState extends State<PostsScreen>
         }
 
         return _PostsListView(
-          onPostDeleted: () {
-            setState(() {});
-          },
           posts: posts,
+          onPostDeleted: _refreshPosts,
+          onRefresh: () async {
+            _refreshPosts();
+          },
         );
       },
     );
@@ -97,44 +108,46 @@ class _PostsScreenState extends State<PostsScreen>
 class _PostsListView extends StatelessWidget {
   final List<PostDataModel> posts;
   final void Function()? onPostDeleted;
+  final Future<void> Function() onRefresh;
 
   const _PostsListView({
     required this.posts,
     this.onPostDeleted,
+    required this.onRefresh,
   });
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      slivers: [
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            childCount: posts.length,
-            addAutomaticKeepAlives: true,
-            (context, index) {
-              return Column(
-                children: [
-                  PostItem(
-                    postData: posts[index],
-                    onPostDeleted: onPostDeleted,
-                  ),
-                  if (index < posts.length - 1)
-                    Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        Divider(),
-                        const SizedBox(height: 5),
-                      ],
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final post = posts[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PostItem(
+                      postData: post,
+                      onPostDeleted: onPostDeleted,
                     ),
-                ],
-              );
-            },
+                    if (index < posts.length - 1)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        child: Divider(),
+                      ),
+                  ],
+                );
+              },
+              childCount: posts.length,
+              addAutomaticKeepAlives: true,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -145,6 +158,7 @@ class _ShimmerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       separatorBuilder: (context, index) => Column(
         children: [
           const SizedBox(height: 10),
@@ -154,7 +168,7 @@ class _ShimmerList extends StatelessWidget {
           const SizedBox(height: 5),
         ],
       ),
-      itemCount: 5, // Show a few shimmer items
+      itemCount: 5,
       itemBuilder: (_, __) => const PostShimmerItem(),
     );
   }

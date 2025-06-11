@@ -170,6 +170,7 @@ class _PostItemState extends State<PostItem> {
             currentUserUid: user?.id,
           ),
           const SizedBox(height: 12),
+          // MARK text
           if (widget.postData.postText.isNotEmpty) ...[
             /// text of post ///
             CustomText(
@@ -179,6 +180,7 @@ class _PostItemState extends State<PostItem> {
             ),
             const SizedBox(height: 12),
           ],
+          // MARK image
           if (widget.postData.postImageUrl != null) ...[
             /// image of post ///
             ClipRRect(
@@ -191,17 +193,18 @@ class _PostItemState extends State<PostItem> {
             ),
             const SizedBox(height: 12),
           ],
-          if (widget.postData.postVideoUrl != null) ...[
-            ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  height: 200,
-                  width: double.infinity,
-                  child: VideoPlayerScreen(
-                      videoUrl: widget.postData.postVideoUrl!),
-                )),
-            const SizedBox(height: 12),
-          ],
+          // MARK video
+          // if (widget.postData.postVideoUrl != null) ...[
+          //   ClipRRect(
+          //       borderRadius: BorderRadius.circular(8),
+          //       child: SizedBox(
+          //         height: 200,
+          //         width: double.infinity,
+          //         child: VideoPlayerScreen(
+          //             videoUrl: widget.postData.postVideoUrl!),
+          //       )),
+          //   const SizedBox(height: 12),
+          // ],
           InkWell(
               onTap: () {
                 showCommentsModal(context);

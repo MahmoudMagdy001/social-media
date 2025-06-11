@@ -310,38 +310,41 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Widget _buildErrorMessage() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Card(
-        color: Colors.red.withAlpha(150),
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CustomText(
-                _errorMessage!,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16.0),
+        child: Card(
+          color: Colors.red.withAlpha(150),
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomText(
+                  _errorMessage!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onError,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.close,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onError,
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onError,
+                  ),
+                  onPressed: () => setState(() => _errorMessage = null),
                 ),
-                onPressed: () => setState(() => _errorMessage = null),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
