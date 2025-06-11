@@ -4,7 +4,6 @@ import 'package:facebook_clone/screens/posts/comments_screen.dart';
 import 'package:facebook_clone/screens/posts/update_post_screen.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
-import 'package:facebook_clone/widgets/video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -193,18 +192,7 @@ class _PostItemState extends State<PostItem> {
             ),
             const SizedBox(height: 12),
           ],
-          // MARK video
-          // if (widget.postData.postVideoUrl != null) ...[
-          //   ClipRRect(
-          //       borderRadius: BorderRadius.circular(8),
-          //       child: SizedBox(
-          //         height: 200,
-          //         width: double.infinity,
-          //         child: VideoPlayerScreen(
-          //             videoUrl: widget.postData.postVideoUrl!),
-          //       )),
-          //   const SizedBox(height: 12),
-          // ],
+
           InkWell(
               onTap: () {
                 showCommentsModal(context);

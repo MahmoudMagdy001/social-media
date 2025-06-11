@@ -3,16 +3,16 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
 /// Stateful widget to fetch and then display video content using Chewie.
-class VideoPlayerScreen extends StatefulWidget {
+class VideoPreview extends StatefulWidget {
   final String videoUrl;
-  const VideoPlayerScreen({super.key, required this.videoUrl});
+  const VideoPreview({super.key, required this.videoUrl});
 
   @override
   // ignore: library_private_types_in_public_api
-  _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
+  _VideoPreviewState createState() => _VideoPreviewState();
 }
 
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
+class _VideoPreviewState extends State<VideoPreview> {
   late VideoPlayerController _videoPlayerController;
   ChewieController? _chewieController;
 

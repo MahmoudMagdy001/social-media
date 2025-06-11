@@ -6,7 +6,7 @@ import 'package:facebook_clone/widgets/custom_button.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:facebook_clone/widgets/custom_text_field.dart';
-import 'package:facebook_clone/widgets/video_player.dart';
+import 'package:facebook_clone/widgets/video_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -142,7 +142,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 if (_selectedVideo != null)
                   SizedBox(
                       height: 300,
-                      child: VideoPlayerScreen(videoUrl: _selectedVideo!.path)),
+                      child: VideoPreview(videoUrl: _selectedVideo!.path)),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
