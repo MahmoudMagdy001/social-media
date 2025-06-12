@@ -223,12 +223,10 @@ class PostService {
     try {
       final response = await _supabase
           .from('reels')
-          .select(
-              'id, user_id, username, profile_image_url, post_text, post_video_url, created_at')
-          .not('post_video_url', 'is', null)
+          .select()
           .order('created_at', ascending: false);
 
-      return (response as List).map((e) => ReelModel.fromMap(e)).toList();
+      return (response as List).map((item) => ReelModel.fromMap(item)).toList();
     } catch (e) {
       debugPrint('Error fetching reels: $e');
       rethrow;

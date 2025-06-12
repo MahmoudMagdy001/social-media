@@ -1,5 +1,5 @@
 import 'package:facebook_clone/models/comments_model.dart';
-import 'package:facebook_clone/screens/posts/likes_screen.dart';
+import 'package:facebook_clone/screens/posts/comments_likes_screens/likes_screen.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -39,9 +39,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
     super.dispose();
   }
 
-  Future<void> addComment(String value) async {
+  Future<void> _addComment(String commentText) async {
     return await _postService.addCommentToPost(
-        postId: widget.postId, commentText: value.trim(), user: currentUser!);
+        postId: widget.postId,
+        commentText: commentText.trim(),
+        user: currentUser!);
   }
 
   @override
@@ -147,7 +149,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         controller: _commentController,
         onFieldSubmitted: (value) async {
           if (value.isNotEmpty) {
-            await addComment(value);
+            await _addComment(value);
             _commentController.clear();
           }
         },

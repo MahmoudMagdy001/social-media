@@ -64,7 +64,7 @@ class LayoutScreen extends StatelessWidget {
         body: SafeArea(
           child: TabBarView(
             children: [
-              PostsScreen(authService: authService),
+              PostsScreen(),
               ReelsScreen(),
               // const Center(child: Text('Watch')),
               const Center(child: Text('Market')),

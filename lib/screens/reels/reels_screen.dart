@@ -1,45 +1,55 @@
 import 'package:facebook_clone/models/reels_model.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
-import 'package:facebook_clone/widgets/reels_player.dart';
+import 'package:facebook_clone/screens/reels/reels_player.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
 
   @override
-  _ReelsScreenState createState() => _ReelsScreenState();
+  State<ReelsScreen> createState() => _ReelsScreenState();
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
   final PostService _postService = PostService();
+  final PageController _pageController = PageController();
+
+  final List<VideoPlayerController> _videoControllers = [];
+  final List<ChewieController> _chewieControllers = [];
+
   List<ReelModel> reels = [];
-  List<VideoPlayerController> _videoControllers = [];
-  List<ChewieController> _chewieControllers = [];
   bool isLoading = true;
+  bool hasError = false;
+  int currentPageIndex = 0;
+
+  final String userId = Supabase.instance.client.auth.currentUser?.id ?? '';
 
   @override
   void initState() {
     super.initState();
-    loadReels();
+    _loadReels();
   }
 
-  Future<void> loadReels() async {
+  Future<void> _loadReels() async {
     try {
-      // 1. Fetch reels from your service
-      reels = await _postService.getReels();
+      final fetchedReels = await _postService.getReels();
 
-      // 2. Initialize video and chewie controllers for each reel
-      for (var reel in reels) {
-        final videoController =
-            VideoPlayerController.networkUrl(Uri.parse(reel.postVideoUrl));
+      // Cleanup old controllers if any (important for reloads)
+      _disposeControllers();
+
+      for (final reel in fetchedReels) {
+        final videoController = VideoPlayerController.networkUrl(
+          Uri.parse(reel.postVideoUrl),
+        );
         await videoController.initialize();
 
         final chewieController = ChewieController(
           videoPlayerController: videoController,
+          looping: true,
           autoPlay: false,
-          looping: false,
           aspectRatio: videoController.value.aspectRatio,
         );
 
@@ -47,22 +57,58 @@ class _ReelsScreenState extends State<ReelsScreen> {
         _chewieControllers.add(chewieController);
       }
 
+      if (!mounted) return;
+
+      setState(() {
+        reels = fetchedReels;
+        isLoading = false;
+        hasError = false;
+      });
+
+      if (_videoControllers.isNotEmpty) {
+        _videoControllers[0].play();
+      }
+    } catch (e) {
+      debugPrint("Error loading reels: $e");
+
+      if (!mounted) return;
       setState(() {
         isLoading = false;
+        hasError = true;
       });
-    } catch (e) {
-      print("Error loading reels: $e");
     }
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      currentPageIndex = index;
+    });
+
+    for (int i = 0; i < _videoControllers.length; i++) {
+      if (i == index) {
+        _videoControllers[i].play();
+      } else {
+        _videoControllers[i].pause();
+        _videoControllers[i].seekTo(Duration.zero); // optional: reset
+      }
+    }
+  }
+
+  void _disposeControllers() {
+    for (final controller in _videoControllers) {
+      controller.dispose();
+    }
+    for (final chewie in _chewieControllers) {
+      chewie.dispose();
+    }
+    _videoControllers.clear();
+    _chewieControllers.clear();
   }
 
   @override
   void dispose() {
-    for (var controller in _videoControllers) {
-      controller.dispose();
-    }
-    for (var chewieController in _chewieControllers) {
-      chewieController.dispose();
-    }
+    _pageController.dispose();
+    _disposeControllers();
     super.dispose();
   }
 
@@ -74,13 +120,50 @@ class _ReelsScreenState extends State<ReelsScreen> {
       );
     }
 
+    if (hasError || reels.isEmpty) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('Failed to load reels.'),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    isLoading = true;
+                    hasError = false;
+                  });
+                  _loadReels();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: PageView.builder(
+        controller: _pageController,
         scrollDirection: Axis.vertical,
-        itemCount: _chewieControllers.length,
+        itemCount: reels.length,
+        onPageChanged: _onPageChanged,
         itemBuilder: (context, index) {
-          return VideoPlayerScreen(
-            chewieController: _chewieControllers[index],
+          if (index >= _chewieControllers.length) {
+            return const Center(child: Text('Invalid reel.'));
+          }
+
+          return AnimatedOpacity(
+            opacity: currentPageIndex == index ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: ReelsPlayerWidget(
+              chewieController: _chewieControllers[index],
+              postService: _postService,
+              postId: reels[index].id,
+              userId: userId,
+            ),
           );
         },
       ),

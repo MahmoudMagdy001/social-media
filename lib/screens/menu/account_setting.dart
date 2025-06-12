@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/services/auth_services/auth_service.dart';
 import 'package:facebook_clone/widgets/custom_button.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
@@ -98,7 +99,7 @@ class _AccountSettingState extends State<AccountSetting> {
     if (newProfileImage != null) {
       imageProvider = FileImage(newProfileImage!);
     } else if (currentProfileImage != null && currentProfileImage!.isNotEmpty) {
-      imageProvider = NetworkImage(currentProfileImage!);
+      imageProvider = CachedNetworkImageProvider(currentProfileImage!);
     }
 
     return Center(
@@ -353,7 +354,6 @@ class _AccountSettingState extends State<AccountSetting> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // _buildHeader(),
               const SizedBox(height: 20),
               _buildProfileImage(),
               const SizedBox(height: 20),

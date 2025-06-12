@@ -1,20 +1,14 @@
-import 'package:facebook_clone/screens/posts/create_post_screen.dart';
+import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/post_data_model.dart';
-import 'post_item.dart';
-import 'post_shimmer_item.dart';
-import 'package:facebook_clone/services/auth_services/auth_service.dart';
+import 'posts_section/post_item.dart';
+import 'posts_section/post_shimmer_item.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 
 class PostsScreen extends StatefulWidget {
-  final AuthService authService;
-
-  const PostsScreen({
-    super.key,
-    required this.authService,
-  });
+  const PostsScreen({super.key});
 
   @override
   State<PostsScreen> createState() => _PostsScreenState();

@@ -10,7 +10,7 @@ import 'package:facebook_clone/widgets/video_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-import '../../consts/theme.dart';
+import '../../../consts/theme.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({
