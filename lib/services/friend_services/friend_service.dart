@@ -113,6 +113,33 @@ class FriendService {
     return friends;
   }
 
+  Future<void> deleteFriend({
+    required String userId,
+    required String friendId,
+  }) async {
+    if (userId.isEmpty || friendId.isEmpty) {
+      throw ArgumentError('User IDs cannot be empty');
+    }
+
+    // Delete the friendship record where userId is user1_id and friendId is user2_id
+    await executeWithRetry(() async {
+      return await _supabase
+          .from(_friendsTable)
+          .delete()
+          .eq('user1_id', userId)
+          .eq('user2_id', friendId);
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
+
+    // Delete the friendship record where friendId is user1_id and userId is user2_id
+    await executeWithRetry(() async {
+      return await _supabase
+          .from(_friendsTable)
+          .delete()
+          .eq('user1_id', friendId)
+          .eq('user2_id', userId);
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
+  }
+
   Future<void> sendFriendRequest({
     required String senderId,
     required String receiverId,

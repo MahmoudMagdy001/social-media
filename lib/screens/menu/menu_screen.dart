@@ -22,55 +22,47 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
-  // currentUser can be null if no user is logged in, handle this possibility
-  final supabase.User? currentUser =
+  final supabase.User? _currentUser =
       supabase.Supabase.instance.client.auth.currentUser;
 
-  String? currentProfileImage;
-  String? currentDisplayName;
+  String? _currentProfileImage;
+  String? _currentDisplayName;
+  bool _isLoadingProfile = true;
 
-  // String? currentEmail; // Keep if needed, currently not used in build directly
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
 
-  bool _isLoadingProfile = true; // Added for loading state
-
-  Future<void> _initializeControllers() async {
-    if (currentUser == null) {
-      // If there's no current user, no need to fetch data.
-      // You might want to navigate to login or show a specific UI.
-      setState(() {
-        _isLoadingProfile = false;
-      });
+  Future<void> _fetchUserProfile() async {
+    if (_currentUser == null) {
+      if (mounted) {
+        setState(() => _isLoadingProfile = false);
+      }
       debugPrint("MenuScreen: No current user found.");
       return;
     }
+
     try {
       final userData = await supabase.Supabase.instance.client
           .from('users')
-          .select(
-              'display_name, email, profile_image') // Select specific columns
-          .eq('id', currentUser!.id) // currentUser is checked for null above
+          .select('display_name, email, profile_image')
+          .eq('id', _currentUser!.id)
           .single();
 
       if (mounted) {
-        // Check if the widget is still in the tree
         setState(() {
-          currentDisplayName = userData['display_name'] as String? ?? '';
-          // currentEmail = userData['email'] as String? ?? '';
-          currentProfileImage = userData['profile_image'] as String?;
+          _currentDisplayName = userData['display_name'] as String? ?? '';
+          _currentProfileImage = userData['profile_image'] as String?;
           _isLoadingProfile = false;
-          debugPrint('currentProfileImage: $currentProfileImage');
-          debugPrint('currentDisplayName: $currentDisplayName');
+          debugPrint('currentProfileImage: $_currentProfileImage');
+          debugPrint('currentDisplayName: $_currentDisplayName');
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoadingProfile = false;
-        });
-      }
-      debugPrint("Error initializing controllers: ${e.toString()}");
-      // Optionally show a snackbar or error message to the user
-      if (mounted) {
+        setState(() => _isLoadingProfile = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: CustomText('Error loading profile data: ${e.toString()}'),
@@ -78,65 +70,156 @@ class _MenuScreenState extends State<MenuScreen> {
           ),
         );
       }
+      debugPrint("Error fetching user profile: ${e.toString()}");
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeControllers(); // No need to await here directly, setState handles UI update
+  Future<void> _handleLogout() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await widget.authService.signOut();
+      if (mounted) {
+        Navigator.of(context).pop(); // Pops the dialog
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(authService: widget.authService),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: CustomText('Error logging out: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      debugPrint("Error during logout: ${e.toString()}");
+    }
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => LoginScreen(authService: widget.authService),
+      ),
+    );
+  }
+
+  void _navigateToUserProfile() {
+    if (_currentUser != null &&
+        _currentDisplayName != null &&
+        _currentProfileImage != null) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => UserProfile(
+          displayName: _currentDisplayName!,
+          imageUrl: _currentProfileImage!,
+          email: _currentUser!.email!,
+        ),
+      ));
+    }
+  }
+
+  void _navigateToAccountSettings() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => AccountSetting(), // TODO: Ensure this is correct
+    ));
+  }
+
+  void _handleThemeChange(bool isDarkMode) {
+    MyApp.of(context)
+        ?.changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+  }
+
+  void _showPrivacyPolicySnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('View Privacy Policy (Not Implemented)')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingProfile && _currentUser != null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_currentUser == null) {
+      return _buildLoggedOutView();
+    }
+
+    return _buildLoggedInView();
+  }
+
+  Widget _buildLoggedOutView() {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Menu")), // Added a title for context
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("You are not logged in."),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _navigateToLogin,
+              child: const Text("Go to Login"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoggedInView() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final sectionHeaderColor = _getSectionHeaderColor(context, isDarkMode);
 
-    if (_isLoadingProfile && currentUser != null) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (currentUser == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Not logged in."),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          LoginScreen(authService: widget.authService),
-                    ),
-                  );
-                },
-                child: const Text("Go to Login"),
-              )
-            ],
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
+      // appBar: AppBar(title: Text(_currentDisplayName ?? "Menu")), // Optional: Show user name or "Menu"
       body: ListView(
         children: [
           const SizedBox(height: 20),
-          _buildProfile(),
+          _ProfileSection(
+            displayName: _currentDisplayName,
+            email: _currentUser?.email,
+            profileImageUrl: _currentProfileImage,
+            onTap: _navigateToUserProfile,
+          ),
           const Divider(),
-          _buildGeneralSection(sectionHeaderColor),
-          _buildAccountSettingsTile(),
+          _MenuSectionHeader(title: 'General', color: sectionHeaderColor),
+          _MenuItemTile(
+            icon: Icons.account_circle,
+            title: 'Account Settings',
+            subtitle: 'Manage your account details',
+            onTap: _navigateToAccountSettings,
+          ),
           const Divider(),
-          _buildAppearanceSection(sectionHeaderColor, isDarkMode),
+          _AppearanceSection(
+            sectionHeaderColor: sectionHeaderColor,
+            isDarkMode: isDarkMode,
+            onThemeChanged: _handleThemeChange,
+          ),
           const Divider(),
-          _buildAboutSection(sectionHeaderColor),
+          _AboutSection(
+            sectionHeaderColor: sectionHeaderColor,
+            onPrivacyPolicyTap: _showPrivacyPolicySnackbar,
+          ),
           const Divider(),
-          _buildLogoutTile(),
+          _MenuItemTile(
+            icon: Icons.logout,
+            title: 'Logout',
+            titleColor: Colors.red[700],
+            iconColor: Colors.red[700],
+            onTap: _handleLogout,
+          ),
+          const SizedBox(height: 20), // Added some padding at the bottom
         ],
       ),
     );
@@ -146,29 +229,50 @@ class _MenuScreenState extends State<MenuScreen> {
     return Theme.of(context).textTheme.titleMedium?.color ??
         (isDarkMode ? Colors.tealAccent : Colors.blueAccent);
   }
+}
 
-  Widget _buildGeneralSection(Color sectionHeaderColor) {
+// --- Extracted Widgets ---
+
+class _MenuSectionHeader extends StatelessWidget {
+  final String title;
+  final Color color;
+
+  const _MenuSectionHeader({required this.title, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-        vertical: 8.0,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: CustomText(
-        'General',
+        title,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: sectionHeaderColor,
+          color: color,
         ),
       ),
     );
   }
+}
 
-  Widget _buildProfile() {
+class _ProfileSection extends StatelessWidget {
+  final String? displayName;
+  final String? email;
+  final String? profileImageUrl;
+  final VoidCallback onTap;
+
+  const _ProfileSection({
+    this.displayName,
+    this.email,
+    this.profileImageUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     ImageProvider<Object>? profileImageProvider;
-
-    if (currentProfileImage != null && currentProfileImage!.isNotEmpty) {
-      profileImageProvider = CachedNetworkImageProvider(currentProfileImage!);
+    if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+      profileImageProvider = CachedNetworkImageProvider(profileImageUrl!);
     }
 
     return ListTile(
@@ -180,102 +284,93 @@ class _MenuScreenState extends State<MenuScreen> {
             ? Icon(Icons.person, size: 35, color: Colors.grey[600])
             : null,
       ),
-      title: Text(currentDisplayName ?? 'User Profile'),
-      // Default text if null
-      subtitle: currentUser?.email != null ? Text(currentUser!.email!) : null,
-      // Display email if available
-      trailing: const Icon(Icons.arrow_forward_ios),
-      onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) {
-            // TODO: Ensure AccountSetting() screen is correctly implemented and imported
-            return UserProfile(
-              displayName: currentDisplayName!,
-              imageUrl: currentProfileImage!,
-              email: currentUser!.email!,
-            );
-          },
-        ));
-      },
+      title: Text(displayName ?? 'User Profile'),
+      subtitle: email != null ? Text(email!) : null,
+      onTap: onTap,
     );
   }
+}
 
-  Widget _buildAccountSettingsTile() {
+class _MenuItemTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+  final Color? titleColor;
+  final Color? iconColor; // Added for logout tile customization
+
+  const _MenuItemTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+    this.titleColor,
+    this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.account_circle),
-      title: const CustomText('Account Settings'),
-      subtitle: const CustomText('Manage your account details'),
-      trailing: const Icon(Icons.arrow_forward_ios),
-      onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) {
-            // TODO: Ensure AccountSetting() screen is correctly implemented and imported
-            return AccountSetting();
-          },
-        ));
-      },
+      leading: Icon(icon, color: iconColor),
+      title: CustomText(title, style: TextStyle(color: titleColor)),
+      subtitle: subtitle != null ? CustomText(subtitle!) : null,
+      trailing: (title != 'Logout') // Avoid arrow for logout
+          ? const Icon(Icons.arrow_forward_ios)
+          : null,
+      onTap: onTap,
     );
   }
+}
 
-  Widget _buildAppearanceSection(Color sectionHeaderColor, bool isDarkMode) {
+class _AppearanceSection extends StatelessWidget {
+  final Color sectionHeaderColor;
+  final bool isDarkMode;
+  final ValueChanged<bool> onThemeChanged;
+
+  const _AppearanceSection({
+    required this.sectionHeaderColor,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 8.0,
-          ),
-          child: CustomText(
-            'Appearance',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: sectionHeaderColor,
-            ),
-          ),
-        ),
+        _MenuSectionHeader(title: 'Appearance', color: sectionHeaderColor),
         SwitchListTile(
           title: const CustomText('Dark Mode'),
           subtitle: CustomText(isDarkMode ? 'Enabled' : 'Disabled'),
           value: isDarkMode,
-          onChanged: _handleThemeChange,
+          onChanged: onThemeChanged,
+          // Pass the callback directly
           secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
         ),
       ],
     );
   }
+}
 
-  void _handleThemeChange(bool value) {
-    // Ensure MyApp.of(context) and changeTheme are correctly implemented in main.dart
-    MyApp.of(context)?.changeTheme(
-      value ? ThemeMode.dark : ThemeMode.light,
-    );
-  }
+class _AboutSection extends StatelessWidget {
+  final Color sectionHeaderColor;
+  final VoidCallback onPrivacyPolicyTap;
 
-  Widget _buildAboutSection(Color sectionHeaderColor) {
+  const _AboutSection({
+    required this.sectionHeaderColor,
+    required this.onPrivacyPolicyTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 8.0,
-          ),
-          child: CustomText(
-            'About',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: sectionHeaderColor,
-            ),
-          ),
-        ),
+        _MenuSectionHeader(title: 'About', color: sectionHeaderColor),
         ListTile(
           leading: const Icon(Icons.info_outline),
           title: const CustomText('App Version'),
-          subtitle: const CustomText('1.0.0'),
-          // TODO: Get version programmatically if needed
+          subtitle: const CustomText('1.0.0'), // TODO: Get programmatically
           onTap: () {
             // Could show an About Dialog
           },
@@ -283,67 +378,9 @@ class _MenuScreenState extends State<MenuScreen> {
         ListTile(
           leading: const Icon(Icons.policy),
           title: const CustomText('Privacy Policy'),
-          onTap: _showPrivacyPolicySnackbar,
+          onTap: onPrivacyPolicyTap,
         ),
       ],
     );
-  }
-
-  void _showPrivacyPolicySnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('View Privacy Policy (Not Implemented)'),
-      ),
-    );
-  }
-
-  Widget _buildLogoutTile() {
-    return ListTile(
-      leading: Icon(Icons.logout, color: Colors.red[700]),
-      title: CustomText(
-        'Logout',
-        style: TextStyle(color: Colors.red[700]),
-      ),
-      onTap: _handleLogout,
-    );
-  }
-
-  Future<void> _handleLogout() async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    try {
-      await widget.authService.signOut();
-      if (mounted) {
-        // Pop the loading dialog
-        Navigator.of(context).pop(); // Pops the dialog
-        // Navigate to login screen and remove all previous routes
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => LoginScreen(authService: widget.authService),
-          ),
-          (Route<dynamic> route) => false, // This predicate removes all routes
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        // Pop the loading dialog
-        Navigator.of(context).pop();
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: CustomText('Error logging out: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      debugPrint("Error during logout: ${e.toString()}");
-    }
   }
 }
