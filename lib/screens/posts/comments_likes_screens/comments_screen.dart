@@ -210,11 +210,15 @@ class CommentsList extends StatelessWidget {
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(comment.username,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18)),
                     Text(
-                      comment.timestamp.toLocal().toString(),
+                      comment.displayName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      comment.timeAgo,
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],

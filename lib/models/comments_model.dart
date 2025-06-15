@@ -1,28 +1,29 @@
+import 'package:timeago/timeago.dart' as timeago;
+
 class CommentModel {
   final String commentId; // Firestore document ID for the comment
   final String userId;
-  final String username;
+  final String displayName;
   final String profileImageUrl;
   final String commentText;
-  final DateTime timestamp;
+  final DateTime createdAt;
 
   CommentModel({
     required this.commentId,
     required this.userId,
-    required this.username,
+    required this.displayName,
     required this.profileImageUrl,
     required this.commentText,
-    required this.timestamp,
+    required this.createdAt,
   });
 
-  // Not sending commentId to Firestore as it's the document's ID
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,
-      'username': username,
+      'display_name': displayName,
       'profile_image_url': profileImageUrl,
       'comment_text': commentText,
-      'created_at': timestamp.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -30,10 +31,12 @@ class CommentModel {
     return CommentModel(
       commentId: commentId,
       userId: map['user_id'] as String? ?? '',
-      username: map['username'] as String? ?? 'Anonymous',
+      displayName: map['display_name'] as String? ?? 'Anonymous',
       profileImageUrl: map['profile_image_url'] as String? ?? '',
       commentText: map['comment_text'] as String? ?? '',
-      timestamp: DateTime.parse(map['created_at'] as String),
+      createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
+
+  String get timeAgo => timeago.format(createdAt);
 }

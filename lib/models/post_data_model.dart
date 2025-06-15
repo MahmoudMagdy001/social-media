@@ -1,8 +1,8 @@
-// If you have a separate CommentsModel for structure, it's fine, but it won't be a direct field anymore.
+import 'package:timeago/timeago.dart' as timeago;
 
 class PostDataModel {
   final String postId;
-  final String username;
+  final String displayName;
   final String profileImageUrl;
   final String postText;
   final DateTime postTime;
@@ -14,7 +14,7 @@ class PostDataModel {
 
   PostDataModel({
     required this.postId,
-    required this.username,
+    required this.displayName,
     required this.profileImageUrl,
     required this.postText,
     required this.postTime,
@@ -28,7 +28,7 @@ class PostDataModel {
   Map<String, dynamic> toMap() {
     return {
       'id': postId,
-      'username': username,
+      'display_name': displayName,
       'profile_image_url': profileImageUrl,
       'post_text': postText,
       'created_at': postTime.toIso8601String(),
@@ -42,7 +42,7 @@ class PostDataModel {
   factory PostDataModel.fromMap(Map<String, dynamic> map, String documentId) {
     return PostDataModel(
       postId: map['id'] as String,
-      username: map['username'] as String? ?? 'Anonymous',
+      displayName: map['display_name'] as String? ?? 'Anonymous',
       profileImageUrl: map['profile_image_url'] as String? ?? '',
       postText: map['post_text'] as String? ?? '',
       postTime: DateTime.parse(map['created_at'] as String),
@@ -53,4 +53,6 @@ class PostDataModel {
       postVideoUrl: map['post_video_url'] as String?,
     );
   }
+
+  String get timeAgo => timeago.format(postTime);
 }

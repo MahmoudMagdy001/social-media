@@ -41,46 +41,6 @@ class PostService {
     throw Exception('Operation failed after $_maxRetries attempts');
   }
 
-  Future<String> _uploadPostImage(File imageFile, String userId) async {
-    try {
-      final fileExt = imageFile.path.split('.').last;
-      final fileName = 'post_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final filePath = '$userId/$fileName';
-
-      debugPrint('Uploading post image to path: $filePath');
-
-      await _supabase.storage.from(_storageBucket).upload(
-            filePath,
-            imageFile,
-            fileOptions: supabase.FileOptions(
-              cacheControl: '3600',
-              upsert: true,
-            ),
-          );
-
-      // Get the public URL
-      final imageUrl =
-          _supabase.storage.from(_storageBucket).getPublicUrl(filePath);
-
-      if (imageUrl.isEmpty) {
-        throw Exception('Failed to get public URL for uploaded image');
-      }
-
-      debugPrint('Post image uploaded successfully. URL: $imageUrl');
-      return '$filePath|$imageUrl'; // Return both path and URL
-    } on supabase.StorageException catch (e) {
-      debugPrint('Storage error uploading post image: [31m${e.message}[0m');
-      if (e.message.contains('row-level security policy')) {
-        throw Exception(
-            'Unable to upload post image. Please make sure you have the correct permissions and the storage bucket is properly configured.');
-      }
-      rethrow;
-    } catch (e) {
-      debugPrint('Error uploading post image: $e');
-      rethrow;
-    }
-  }
-
   Future<void> createPost({
     required String postText,
     required supabase.User user,
@@ -138,7 +98,7 @@ class PostService {
     // Shared metadata
     final commonData = {
       'user_id': user.id,
-      'username': userData['display_name'] ?? 'Anonymous',
+      'display_name': userData['display_name'] ?? 'Anonymous',
       'profile_image_url': userData['profile_image'] ?? '',
       'post_text': postText.trim(),
       'created_at': timestamp,
@@ -163,181 +123,6 @@ class PostService {
       };
       await _supabase.from(_postsTable).insert(postData);
     }
-  }
-
-  Future<String> _uploadPostVideo(File videoFile, String userId) async {
-    try {
-      final fileExt = videoFile.path.split('.').last;
-      final fileName =
-          'video_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final filePath = '$userId/$fileName';
-
-      debugPrint('Uploading post video to path: $filePath');
-
-      await _supabase.storage.from(_storageBucket).upload(
-            filePath,
-            videoFile,
-            fileOptions: supabase.FileOptions(
-              cacheControl: '3600',
-              upsert: true,
-            ),
-          );
-
-      final videoUrl =
-          _supabase.storage.from(_storageBucket).getPublicUrl(filePath);
-
-      if (videoUrl.isEmpty) {
-        throw Exception('Failed to get public URL for uploaded video');
-      }
-
-      debugPrint('Post video uploaded successfully. URL: $videoUrl');
-      return '$filePath|$videoUrl';
-    } on supabase.StorageException catch (e) {
-      debugPrint('Storage error uploading post video: [31m${e.message}[0m');
-      if (e.message.contains('row-level security policy')) {
-        throw Exception(
-            'Unable to upload post video. Check your RLS policies and bucket settings.');
-      }
-      rethrow;
-    } catch (e) {
-      debugPrint('Error uploading post video: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<PostDataModel>> getPosts() async {
-    try {
-      final response = await _supabase
-          .from(_postsTable)
-          .select()
-          .order('created_at', ascending: false);
-
-      return (response as List).map((item) => _mapToPost(item)).toList();
-    } catch (e) {
-      debugPrint('Error getting posts: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<ReelModel>> getReels() async {
-    try {
-      final response = await _supabase
-          .from('reels')
-          .select()
-          .order('created_at', ascending: false);
-
-      return (response as List).map((item) => ReelModel.fromMap(item)).toList();
-    } catch (e) {
-      debugPrint('Error fetching reels: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> addCommentToPost({
-    required String postId,
-    required String commentText,
-    required supabase.User user,
-  }) async {
-    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
-    if (commentText.trim().isEmpty) {
-      throw ArgumentError('Comment text cannot be empty');
-    }
-
-    final userData =
-        await _supabase.from(_usersTable).select().eq('id', user.id).single();
-
-    await _executeWithRetry(() async {
-      final comment = {
-        'post_id': postId,
-        'user_id': user.id,
-        'username': userData['display_name'] ?? 'Anonymous',
-        'profile_image_url': userData['profile_image'] ?? '',
-        'comment_text': commentText.trim(),
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      await _supabase.from(_commentsTable).insert(comment);
-    });
-  }
-
-  Future<void> addLike({
-    required String postId,
-    required String userId,
-  }) async {
-    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
-    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
-
-    final userData = await _supabase
-        .from(_usersTable)
-        .select('display_name')
-        .eq('id', userId)
-        .single();
-
-    await _executeWithRetry(() async {
-      await _supabase.from(_likesTable).insert({
-        'post_id': postId,
-        'user_id': userId,
-        'display_name': userData['display_name'] ?? 'Anonymous',
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      debugPrint('User $userId liked the post $postId');
-    });
-  }
-
-  Future<void> removeLike({
-    required String postId,
-    required String userId,
-  }) async {
-    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
-    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
-
-    await _executeWithRetry(() async {
-      await _supabase
-          .from(_likesTable)
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', userId);
-      debugPrint('User $userId unliked the post $postId');
-    });
-  }
-
-  Stream<bool> hasUserLikedPost(
-      {required String postId, required String userId}) {
-    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
-    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
-
-    return _supabase.from(_likesTable).stream(primaryKey: ['id']).map(
-        (events) => events.any(
-            (like) => like['post_id'] == postId && like['user_id'] == userId));
-  }
-
-  Stream<List<Map<String, dynamic>>> getLikesForPost({required String postId}) {
-    return _supabase
-        .from(_likesTable)
-        .stream(primaryKey: ['id']).map((events) => events
-            .where((like) => like['post_id'] == postId)
-            .map((like) => {
-                  'userId': like['user_id'],
-                  'display_name': like['display_name'],
-                  'timestamp': DateTime.parse(like['created_at']),
-                })
-            .toList());
-  }
-
-  Stream<List<CommentModel>> getCommentsForPost({required String postId}) {
-    return _supabase
-        .from(_commentsTable)
-        .stream(primaryKey: ['id'])
-        .order('created_at', ascending: false)
-        .map((events) => events
-            .where((comment) => comment['post_id'] == postId)
-            .map((comment) => CommentModel.fromMap(comment, comment['id']))
-            .toList());
-  }
-
-  PostDataModel _mapToPost(Map<String, dynamic> data) {
-    return PostDataModel.fromMap(data, data['id']);
   }
 
   Future<void> deletePost({
@@ -445,6 +230,67 @@ class PostService {
     });
   }
 
+  Future<List<PostDataModel>> getPosts() async {
+    try {
+      final response = await _supabase
+          .from(_postsTable)
+          .select()
+          .order('created_at', ascending: false);
+
+      // Defensive cast & mapping
+      final data = response as List<dynamic>;
+
+      return data.map<PostDataModel>((item) {
+        final documentId = item['id'];
+        return PostDataModel.fromMap(item, documentId);
+      }).toList();
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error getting posts: $e\n$stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<List<ReelModel>> getReels() async {
+    try {
+      final response = await _supabase
+          .from('reels')
+          .select()
+          .order('created_at', ascending: false);
+
+      return (response as List).map((item) => ReelModel.fromMap(item)).toList();
+    } catch (e) {
+      debugPrint('Error fetching reels: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addCommentToPost({
+    required String postId,
+    required String commentText,
+    required supabase.User user,
+  }) async {
+    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
+    if (commentText.trim().isEmpty) {
+      throw ArgumentError('Comment text cannot be empty');
+    }
+
+    final userData =
+        await _supabase.from(_usersTable).select().eq('id', user.id).single();
+
+    await _executeWithRetry(() async {
+      final comment = {
+        'post_id': postId,
+        'user_id': user.id,
+        'display_name': userData['display_name'] ?? 'Anonymous',
+        'profile_image_url': userData['profile_image'] ?? '',
+        'comment_text': commentText.trim(),
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      await _supabase.from(_commentsTable).insert(comment);
+    });
+  }
+
   Future<void> updateComment({
     required String postId,
     required String commentId,
@@ -492,5 +338,160 @@ class PostService {
 
       await _supabase.from(_commentsTable).delete().eq('id', commentId);
     });
+  }
+
+  Future<void> addLike({
+    required String postId,
+    required String userId,
+  }) async {
+    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
+    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
+
+    final userData = await _supabase
+        .from(_usersTable)
+        .select('display_name')
+        .eq('id', userId)
+        .single();
+
+    await _executeWithRetry(() async {
+      await _supabase.from(_likesTable).insert({
+        'post_id': postId,
+        'user_id': userId,
+        'display_name': userData['display_name'] ?? 'Anonymous',
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      debugPrint('User $userId liked the post $postId');
+    });
+  }
+
+  Future<void> removeLike({
+    required String postId,
+    required String userId,
+  }) async {
+    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
+    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
+
+    await _executeWithRetry(() async {
+      await _supabase
+          .from(_likesTable)
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', userId);
+      debugPrint('User $userId unliked the post $postId');
+    });
+  }
+
+  Stream<bool> hasUserLikedPost(
+      {required String postId, required String userId}) {
+    if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
+    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
+
+    return _supabase.from(_likesTable).stream(primaryKey: ['id']).map(
+        (events) => events.any(
+            (like) => like['post_id'] == postId && like['user_id'] == userId));
+  }
+
+  Stream<List<Map<String, dynamic>>> getLikesForPost({required String postId}) {
+    return _supabase
+        .from(_likesTable)
+        .stream(primaryKey: ['id']).map((events) => events
+            .where((like) => like['post_id'] == postId)
+            .map((like) => {
+                  'userId': like['user_id'],
+                  'display_name': like['display_name'],
+                  'timestamp': DateTime.parse(like['created_at']),
+                })
+            .toList());
+  }
+
+  Stream<List<CommentModel>> getCommentsForPost({required String postId}) {
+    return _supabase
+        .from(_commentsTable)
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((events) => events
+            .where((comment) => comment['post_id'] == postId)
+            .map((comment) => CommentModel.fromMap(comment, comment['id']))
+            .toList());
+  }
+
+  Future<String> _uploadPostImage(File imageFile, String userId) async {
+    try {
+      final fileExt = imageFile.path.split('.').last;
+      final fileName = 'post_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '$userId/$fileName';
+
+      debugPrint('Uploading post image to path: $filePath');
+
+      await _supabase.storage.from(_storageBucket).upload(
+            filePath,
+            imageFile,
+            fileOptions: supabase.FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+            ),
+          );
+
+      // Get the public URL
+      final imageUrl =
+          _supabase.storage.from(_storageBucket).getPublicUrl(filePath);
+
+      if (imageUrl.isEmpty) {
+        throw Exception('Failed to get public URL for uploaded image');
+      }
+
+      debugPrint('Post image uploaded successfully. URL: $imageUrl');
+      return '$filePath|$imageUrl'; // Return both path and URL
+    } on supabase.StorageException catch (e) {
+      debugPrint('Storage error uploading post image: [31m${e.message}[0m');
+      if (e.message.contains('row-level security policy')) {
+        throw Exception(
+            'Unable to upload post image. Please make sure you have the correct permissions and the storage bucket is properly configured.');
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('Error uploading post image: $e');
+      rethrow;
+    }
+  }
+
+  Future<String> _uploadPostVideo(File videoFile, String userId) async {
+    try {
+      final fileExt = videoFile.path.split('.').last;
+      final fileName =
+          'video_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '$userId/$fileName';
+
+      debugPrint('Uploading post video to path: $filePath');
+
+      await _supabase.storage.from(_storageBucket).upload(
+            filePath,
+            videoFile,
+            fileOptions: supabase.FileOptions(
+              cacheControl: '3600',
+              upsert: true,
+            ),
+          );
+
+      final videoUrl =
+          _supabase.storage.from(_storageBucket).getPublicUrl(filePath);
+
+      if (videoUrl.isEmpty) {
+        throw Exception('Failed to get public URL for uploaded video');
+      }
+
+      debugPrint('Post video uploaded successfully. URL: $videoUrl');
+      return '$filePath|$videoUrl';
+    } on supabase.StorageException catch (e) {
+      debugPrint('Storage error uploading post video: [31m${e.message}[0m');
+      if (e.message.contains('row-level security policy')) {
+        throw Exception(
+            'Unable to upload post video. Check your RLS policies and bucket settings.');
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('Error uploading post video: $e');
+      rethrow;
+    }
   }
 }

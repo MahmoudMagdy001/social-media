@@ -281,7 +281,7 @@ class _PostUserSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                postData.username,
+                postData.displayName,
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge
@@ -289,9 +289,7 @@ class _PostUserSection extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               CustomText(
-                postData.postTime
-                    .toUtc()
-                    .toString(), // format this in PostDataModel or format here
+                postData.timeAgo,
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
