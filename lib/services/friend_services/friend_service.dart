@@ -159,44 +159,60 @@ class FriendService {
     // Get the original friend request details
     final request = await _supabase
         .from(_friendRequestsTable)
-        .select('sender_id, sender_name, receiver_name') // Include names needed
+        .select(
+            'sender_id, sender_name, sender_image, receiver_name, receiver_image')
         .eq('id', requestId)
         .single();
 
     final senderId = request['sender_id'];
-    final senderName = request['sender_name']; // From the friend_requests table
-    final receiverName =
-        request['receiver_name']; // From the friend_requests table
+    String? senderName = request['sender_name'];
+    String? receiverName = request['receiver_name'];
+    String? senderImage = request['sender_image'];
+    String? receiverImage = request['receiver_image'];
 
-    if (senderName == null || receiverName == null) {
+    // Fallback if any detail is null
+    if (senderName == null ||
+        receiverName == null ||
+        senderImage == null ||
+        receiverImage == null) {
       final senderData = await _supabase
           .from(_usersTable)
-          .select('display_name')
+          .select('display_name, profile_image')
           .eq('id', senderId)
           .single();
+
       final receiverData = await _supabase
           .from(_usersTable)
-          .select('display_name')
+          .select('display_name, profile_image')
           .eq('id', receiverId)
           .single();
 
+      senderName ??= senderData['display_name'];
+      senderImage ??= senderData['profile_image'];
+      receiverName ??= receiverData['display_name'];
+      receiverImage ??= receiverData['profile_image'];
+
       debugPrint(
-          'Warning: sender_name or receiver_name is null in the friend request. Friend record might be incomplete.');
+          'Warning: Some friend request fields were null. Filled from users table.');
     }
 
     // Create friendship records in the _friendsTable
     await _supabase.from(_friendsTable).insert([
       {
         'user1_id': senderId,
-        'user1_name': senderName, // Add sender's name
+        'user1_name': senderName,
+        'user1_image': senderImage,
         'user2_id': receiverId,
-        'user2_name': receiverName, // Add receiver's name
+        'user2_name': receiverName,
+        'user2_image': receiverImage,
       },
       {
         'user1_id': receiverId,
-        'user1_name': receiverName, // Add receiver's name
+        'user1_name': receiverName,
+        'user1_image': receiverImage,
         'user2_id': senderId,
-        'user2_name': senderName, // Add sender's name
+        'user2_name': senderName,
+        'user2_image': senderImage,
       }
     ]);
 

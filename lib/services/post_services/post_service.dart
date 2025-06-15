@@ -239,6 +239,28 @@ class PostService {
     }
   }
 
+  Future<List<PostDataModel>> getPostsForCurrentUser(
+      String currentUserId) async {
+    try {
+      final response = await _supabase
+          .from(_postsTable)
+          .select()
+          .eq('user_id', currentUserId)
+          .order('created_at', ascending: false);
+
+      // Defensive cast & mapping
+      final data = response as List<dynamic>;
+
+      return data.map<PostDataModel>((item) {
+        final documentId = item['id'];
+        return PostDataModel.fromMap(item, documentId);
+      }).toList();
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error getting posts: $e\n$stackTrace');
+      rethrow;
+    }
+  }
+
   Future<List<ReelModel>> getReels() async {
     try {
       final response = await _supabase

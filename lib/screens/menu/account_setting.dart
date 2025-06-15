@@ -41,7 +41,7 @@ class _AccountSettingState extends State<AccountSetting> {
     _initializeControllers();
   }
 
-  final supabase.User currentuser =
+  final supabase.User currentUser =
       supabase.Supabase.instance.client.auth.currentUser!;
 
   Future<void> _initializeControllers() async {
@@ -49,7 +49,7 @@ class _AccountSettingState extends State<AccountSetting> {
       final userData = await supabase.Supabase.instance.client
           .from('users')
           .select()
-          .eq('id', currentuser.id)
+          .eq('id', currentUser.id)
           .single();
       setState(() {
         _displayNameController.text = userData['display_name'] ?? '';
