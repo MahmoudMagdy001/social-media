@@ -1,3 +1,4 @@
+import 'package:facebook_clone/screens/friends/friends_screen.dart';
 import 'package:facebook_clone/screens/menu/menu_screen.dart';
 import 'package:facebook_clone/screens/reels/reels_screen.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
@@ -48,8 +49,16 @@ class LayoutScreen extends StatelessWidget {
           ),
           actions: [
             CustomIconButton(
-              onPressed: () {},
-              iconData: Icons.search,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return FriendsScreen();
+                    },
+                  ),
+                );
+              },
+              iconData: Icons.person_add_outlined,
               iconSize: 24,
               tooltip: 'Search',
             ),

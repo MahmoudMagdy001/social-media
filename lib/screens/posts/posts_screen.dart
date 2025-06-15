@@ -1,5 +1,6 @@
 import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../models/post_data_model.dart';
 import 'posts_section/post_item.dart';
@@ -18,16 +19,17 @@ class _PostsScreenState extends State<PostsScreen>
     with AutomaticKeepAliveClientMixin<PostsScreen> {
   final PostService _postService = PostService();
   late Future<List<PostDataModel>> _postsFuture;
+  final user = supabase.Supabase.instance.client.auth.currentUser;
 
   @override
   void initState() {
     super.initState();
-    _postsFuture = _postService.getPosts();
+    _postsFuture = _postService.getFriendsPosts(user!.id);
   }
 
   void _refreshPosts() {
     setState(() {
-      _postsFuture = _postService.getPosts();
+      _postsFuture = _postService.getFriendsPosts(user!.id);
     });
   }
 

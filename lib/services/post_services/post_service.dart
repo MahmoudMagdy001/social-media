@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:facebook_clone/models/reels_model.dart';
+import 'package:facebook_clone/utils/execute_with_retry.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/models/comments_model.dart';
@@ -9,11 +10,15 @@ class PostService {
   // Constants
   static const int _maxRetries = 3;
   static const Duration _retryDelay = Duration(seconds: 1);
+
   static const String _usersTable = 'users';
+
   static const String _postsTable = 'posts';
   static const String _reelsTable = 'reels';
+
   static const String _commentsTable = 'comments';
   static const String _likesTable = 'likes';
+
   static const String _storageBucket = 'post-images';
 
   // Supabase instance
@@ -24,22 +29,6 @@ class PostService {
       : _supabase = supabaseClient ?? supabase.Supabase.instance.client;
 
   /// Executes a Supabase operation with retry logic
-  Future<T> _executeWithRetry<T>(Future<T> Function() operation) async {
-    int retryCount = 0;
-    while (retryCount < _maxRetries) {
-      try {
-        return await operation();
-      } catch (e) {
-        retryCount++;
-        if (retryCount == _maxRetries) {
-          debugPrint('Operation failed after $_maxRetries attempts: $e');
-          rethrow;
-        }
-        await Future.delayed(_retryDelay * retryCount);
-      }
-    }
-    throw Exception('Operation failed after $_maxRetries attempts');
-  }
 
   Future<void> createPost({
     required String postText,
@@ -132,7 +121,7 @@ class PostService {
     if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
     if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       final post =
           await _supabase.from(_postsTable).select().eq('id', postId).single();
 
@@ -154,7 +143,7 @@ class PostService {
 
       // Delete the post
       await _supabase.from(_postsTable).delete().eq('id', postId);
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<void> updatePost({
@@ -171,7 +160,7 @@ class PostService {
           'Post must contain either updated text, a new image, or image removal');
     }
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       final existingPost = await _supabase
           .from(_postsTable)
           .select()
@@ -227,7 +216,7 @@ class PostService {
       };
 
       await _supabase.from(_postsTable).update(updates).eq('id', postId);
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<List<PostDataModel>> getPosts() async {
@@ -277,7 +266,7 @@ class PostService {
     final userData =
         await _supabase.from(_usersTable).select().eq('id', user.id).single();
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       final comment = {
         'post_id': postId,
         'user_id': user.id,
@@ -288,7 +277,7 @@ class PostService {
       };
 
       await _supabase.from(_commentsTable).insert(comment);
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<void> updateComment({
@@ -304,7 +293,7 @@ class PostService {
     }
     if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       final comment = await _supabase
           .from(_commentsTable)
           .select()
@@ -319,7 +308,7 @@ class PostService {
         'comment_text': newCommentText.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', commentId);
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<void> deleteComment({
@@ -329,7 +318,7 @@ class PostService {
     if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
     if (commentId.isEmpty) throw ArgumentError('Comment ID cannot be empty');
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       await _supabase
           .from(_commentsTable)
           .select()
@@ -337,7 +326,7 @@ class PostService {
           .single();
 
       await _supabase.from(_commentsTable).delete().eq('id', commentId);
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<void> addLike({
@@ -353,7 +342,7 @@ class PostService {
         .eq('id', userId)
         .single();
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       await _supabase.from(_likesTable).insert({
         'post_id': postId,
         'user_id': userId,
@@ -361,7 +350,7 @@ class PostService {
         'created_at': DateTime.now().toIso8601String(),
       });
       debugPrint('User $userId liked the post $postId');
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Future<void> removeLike({
@@ -371,14 +360,14 @@ class PostService {
     if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
     if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
 
-    await _executeWithRetry(() async {
+    await executeWithRetry(() async {
       await _supabase
           .from(_likesTable)
           .delete()
           .eq('post_id', postId)
           .eq('user_id', userId);
       debugPrint('User $userId unliked the post $postId');
-    });
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
   Stream<bool> hasUserLikedPost(
@@ -493,5 +482,35 @@ class PostService {
       debugPrint('Error uploading post video: $e');
       rethrow;
     }
+  }
+
+  Future<List<PostDataModel>> getFriendsPosts(String userId) async {
+    if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
+
+    return await executeWithRetry(() async {
+      // Get list of friend IDs
+      final friends = await _supabase
+          .from('friends')
+          .select('user1_id, user2_id')
+          .or('user1_id.eq.$userId,user2_id.eq.$userId');
+
+      // Extract all relevant user IDs (friends + current user)
+      final friendIds = friends
+          .map<String>(
+              (f) => f['user1_id'] == userId ? f['user2_id'] : f['user1_id'])
+          .toList();
+      friendIds.add(userId); // Include current user's posts
+
+      // Get posts from these users
+      final response = await _supabase
+          .from(_postsTable)
+          .select()
+          .inFilter('user_id', friendIds)
+          .order('created_at', ascending: false);
+
+      return (response as List).map<PostDataModel>((item) {
+        return PostDataModel.fromMap(item, item['id']);
+      }).toList();
+    }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 }
