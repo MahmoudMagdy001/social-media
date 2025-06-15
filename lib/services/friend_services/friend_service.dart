@@ -1,5 +1,6 @@
 import 'package:facebook_clone/models/friends_model.dart';
 import 'package:facebook_clone/utils/execute_with_retry.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class FriendService {
@@ -40,7 +41,7 @@ class FriendService {
   /// Get all sent friend requests that are still pending
   Future<List<FriendRequestModel>> getSentRequests(String userId) async {
     final response = await _supabase
-        .from('friend_requests')
+        .from(_friendRequestsTable)
         .select()
         .eq('sender_id', userId)
         .eq('status', 'pending');
@@ -95,7 +96,7 @@ class FriendService {
 
   Future<List<Map<String, dynamic>>> getFriends(String userId) async {
     final response = await _supabase
-        .from('friends')
+        .from(_friendsTable)
         .select('user1_id, user2_id')
         .or('user1_id.eq.$userId,user2_id.eq.$userId');
 
@@ -107,7 +108,7 @@ class FriendService {
     if (friendIds.isEmpty) return [];
 
     final friends =
-        await _supabase.from('users').select().inFilter('id', friendIds);
+        await _supabase.from(_usersTable).select().inFilter('id', friendIds);
 
     return friends;
   }
@@ -117,18 +118,18 @@ class FriendService {
     required String receiverId,
   }) async {
     final sender = await _supabase
-        .from('users')
+        .from(_usersTable)
         .select('display_name, profile_image')
         .eq('id', senderId)
         .single();
 
     final receiver = await _supabase
-        .from('users')
+        .from(_usersTable)
         .select('display_name, profile_image')
         .eq('id', receiverId)
         .single();
 
-    await _supabase.from('friend_requests').insert({
+    await _supabase.from(_friendRequestsTable).insert({
       'sender_id': senderId,
       'sender_name': sender['display_name'],
       'sender_image': sender['profile_image'],
@@ -145,7 +146,7 @@ class FriendService {
     required String receiverId,
   }) async {
     await _supabase
-        .from('friend_requests')
+        .from(_friendRequestsTable)
         .delete()
         .eq('sender_id', senderId)
         .eq('receiver_id', receiverId);
@@ -155,30 +156,58 @@ class FriendService {
     required String requestId,
     required String receiverId,
   }) async {
-    // Update request status
-    await _supabase
-        .from('friend_requests')
-        .update({'status': 'accepted'}).eq('id', requestId);
-
-    // Create friendship records
+    // Get the original friend request details
     final request = await _supabase
-        .from('friend_requests')
-        .select()
+        .from(_friendRequestsTable)
+        .select('sender_id, sender_name, receiver_name') // Include names needed
         .eq('id', requestId)
         .single();
 
-    await _supabase.from('friends').insert([
-      {'user1_id': request['sender_id'], 'user2_id': receiverId},
-      {'user1_id': receiverId, 'user2_id': request['sender_id']},
+    final senderId = request['sender_id'];
+    final senderName = request['sender_name']; // From the friend_requests table
+    final receiverName =
+        request['receiver_name']; // From the friend_requests table
+
+    if (senderName == null || receiverName == null) {
+      final senderData = await _supabase
+          .from(_usersTable)
+          .select('display_name')
+          .eq('id', senderId)
+          .single();
+      final receiverData = await _supabase
+          .from(_usersTable)
+          .select('display_name')
+          .eq('id', receiverId)
+          .single();
+
+      debugPrint(
+          'Warning: sender_name or receiver_name is null in the friend request. Friend record might be incomplete.');
+    }
+
+    // Create friendship records in the _friendsTable
+    await _supabase.from(_friendsTable).insert([
+      {
+        'user1_id': senderId,
+        'user1_name': senderName, // Add sender's name
+        'user2_id': receiverId,
+        'user2_name': receiverName, // Add receiver's name
+      },
+      {
+        'user1_id': receiverId,
+        'user1_name': receiverName, // Add receiver's name
+        'user2_id': senderId,
+        'user2_name': senderName, // Add sender's name
+      }
     ]);
+
+    // Delete the friend request
+    await _supabase.from(_friendRequestsTable).delete().eq('id', requestId);
   }
 
   Future<void> rejectFriendRequest({
     required String requestId,
     required String receiverId,
   }) async {
-    await _supabase
-        .from('friend_requests')
-        .update({'status': 'rejected'}).eq('id', requestId);
+    await _supabase.from(_friendRequestsTable).delete().eq('id', requestId);
   }
 }

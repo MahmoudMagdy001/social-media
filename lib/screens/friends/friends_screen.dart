@@ -1,6 +1,8 @@
-import 'package:facebook_clone/services/freind_services/freind_service.dart';
+import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+import '../../services/friend_services/friend_service.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -69,7 +71,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Friends'),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Row(
+          children: [
+            CustomIconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                iconData: Icons.arrow_back_ios),
+            const Text('Friends'),
+          ],
+        ),
       ),
       body: _buildBody(),
     );
@@ -191,16 +204,20 @@ class _FriendsScreenState extends State<FriendsScreen> {
         receiverId: receiverId,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request sent')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend request sent')),
+        );
+      }
     } catch (e) {
       setState(() {
         _requestStatus.remove(receiverId);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send request: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send request: $e')),
+        );
+      }
     }
   }
 
@@ -214,21 +231,32 @@ class _FriendsScreenState extends State<FriendsScreen> {
       setState(() {
         _requestStatus.remove(userId);
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request canceled')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request canceled')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to cancel request: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to cancel request: $e')),
+        );
+      }
     }
   }
 
   Future<void> _acceptRequest(String senderId) async {
     try {
+      // Find the request to accept.
+      // This assumes that getFriendRequests returns all requests involving the current user.
+      final requests = await _friendService.getFriendRequests(user!.id);
+      final requestToAccept = requests.firstWhere(
+        (req) => req.senderId == senderId && req.receiverId == user!.id,
+        // orElse: () => null, // Depending on your FriendRequestModel structure and null safety
+      );
+
       await _friendService.acceptFriendRequest(
-        requestId: _getRequestId(senderId, user!.id)!,
+        requestId: requestToAccept.id,
         receiverId: user!.id,
       );
 
@@ -236,41 +264,56 @@ class _FriendsScreenState extends State<FriendsScreen> {
         _requestStatus[senderId] = FriendRequestStatus.friends;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request accepted')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend request accepted')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to accept request: $e')),
-      );
+      debugPrint('Error accepting friend request: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to accept request: $e')),
+        );
+      }
     }
   }
 
   Future<void> _rejectRequest(String senderId) async {
+    // Add senderId parameter
     try {
+      // Find the request to reject.
+      final requests = await _friendService.getFriendRequests(user!.id);
+      final requestToReject = requests.firstWhere(
+        (req) => req.senderId == senderId && req.receiverId == user!.id,
+        // orElse: () => null, // Depending on your FriendRequestModel structure and null safety
+      );
+
       await _friendService.rejectFriendRequest(
-        requestId: _getRequestId(senderId, user!.id)!,
+        requestId: requestToReject.id,
         receiverId: user!.id,
       );
 
       setState(() {
+        // Remove the status or set to none, depending on desired behavior after rejection
         _requestStatus.remove(senderId);
+        // OR
+        // _requestStatus[senderId] = FriendRequestStatus.none;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request rejected')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Friend request rejected')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to reject request: $e')),
-      );
+      debugPrint('Error rejecting friend request: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to reject request: $e')),
+        );
+      }
     }
-  }
-
-  String? _getRequestId(String senderId, String receiverId) {
-    // You'll need to implement this based on how you track requests
-    // This should return the request ID for the given sender-receiver pair
-    return null;
   }
 
   Widget _buildSuggestionsTab() {

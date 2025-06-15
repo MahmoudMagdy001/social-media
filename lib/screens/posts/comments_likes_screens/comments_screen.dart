@@ -218,7 +218,7 @@ class CommentsList extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      comment.timeAgo,
+                      comment.createdAt.toString(),
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
