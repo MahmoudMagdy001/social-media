@@ -111,7 +111,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     return Column(
       children: [
-        _buildTabs(),
+        Expanded(child: _buildTabs()),
       ],
     );
   }
@@ -128,8 +128,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               Tab(text: 'Received'),
             ],
           ),
-          SizedBox(
-            height: 200, // Adjust height as needed
+          Expanded(
             child: TabBarView(
               children: [
                 _buildSuggestionsTab(),

@@ -42,7 +42,7 @@ class _PostsScreenState extends State<PostsScreen>
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           child: Column(
             children: [
               Expanded(

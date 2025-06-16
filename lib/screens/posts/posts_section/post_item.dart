@@ -1,5 +1,3 @@
-// ignore_for_file: unnecessary_null_comparison
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
@@ -64,7 +62,8 @@ class _PostItemState extends State<PostItem> {
 
   Future<void> _deletePost() async {
     if (user == null) return;
-    await _postService.deletePost(postId: _postData.postId, userId: user!.id);
+    await _postService.deletePost(
+        postId: _postData.postId, userId: user!.id, isReel: false);
     widget.onPostDeleted?.call();
     if (mounted) {
       showOptions(context);
@@ -84,70 +83,68 @@ class _PostItemState extends State<PostItem> {
   Widget build(BuildContext context) {
     if (user == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _PostUserSection(
-            postData: _postData,
-            onDelete: _deletePost,
-            onUpdate: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => UpdatePostScreen(post: _postData),
-                ),
-              );
-            },
-            currentUserUid: user?.id,
-          ),
-          const SizedBox(height: 12),
-          if (_postData.postText.isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _PostUserSection(
+          postData: _postData,
+          onDelete: _deletePost,
+          onUpdate: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => UpdatePostScreen(post: _postData),
+              ),
+            );
+          },
+          currentUserUid: user?.id,
+        ),
+        const SizedBox(height: 12),
+        if (_postData.postText.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: CustomText(
                   _postData.postText,
                   style: Theme.of(context)
                       .textTheme
                       .bodyLarge
                       ?.copyWith(fontSize: 16),
                 ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          if (_postData.postImageUrl != null)
-            Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: _postData.postImageUrl!,
-                    errorWidget: (context, url, error) => Icon(Icons.error),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          InkWell(
-            onTap: () {
-              showCommentsModal(
-                context,
-                postId: _postData.documentId,
-                likesStream: _likesStream,
-                commentsStream: _commentsStream,
-              );
-            },
-            child: reactsSection(
-              context,
-              commentsStream: _commentsStream,
-              likesStream: _likesStream,
-              sharesCount: _postData.sharesCount,
-            ),
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
-          _buildInteractionButtons(),
-        ],
-      ),
+        if (_postData.postImageUrl != null)
+          Column(
+            children: [
+              CachedNetworkImage(
+                width: double.infinity,
+                imageUrl: _postData.postImageUrl!,
+                errorWidget: (context, url, error) => Icon(Icons.error),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        InkWell(
+          onTap: () {
+            showCommentsModal(
+              context,
+              postId: _postData.documentId,
+              likesStream: _likesStream,
+              commentsStream: _commentsStream,
+            );
+          },
+          child: reactsSection(
+            context,
+            commentsStream: _commentsStream,
+            likesStream: _likesStream,
+            sharesCount: _postData.sharesCount,
+          ),
+        ),
+        _buildInteractionButtons(),
+      ],
     );
   }
 
@@ -260,67 +257,94 @@ class _PostUserSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwner = postData.userId == currentUserUid;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Profile Image
-        CircleAvatar(
-          radius: 22,
-          backgroundImage: postData.profileImageUrl != null
-              ? CachedNetworkImageProvider(postData.profileImageUrl)
-              : null,
-          child: postData.profileImageUrl == null
-              ? const Icon(Icons.person, size: 24)
-              : null,
-        ),
-        const SizedBox(width: 10),
-
-        // Name & Date
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                postData.displayName,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              CustomText(
-                postData.timeAgo,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Profile Image
+          CircleAvatar(
+            radius: 27,
+            backgroundImage:
+                CachedNetworkImageProvider(postData.profileImageUrl),
           ),
-        ),
+          const SizedBox(width: 10),
 
-        // More Options for Post Owner
-        if (isOwner)
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'edit') {
-                onUpdate();
-              } else if (value == 'delete') {
-                onDelete();
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(
-                  value: 'delete',
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
-                  )),
-            ],
-            icon: const Icon(Icons.more_vert),
+          // Name & Date
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  postData.displayName,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                CustomText(
+                  postData.timeAgo,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: Colors.grey),
+                ),
+              ],
+            ),
           ),
-      ],
+
+          // More Options for Post Owner
+          if (isOwner)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onUpdate();
+                } else if (value == 'delete') {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Delete Post'),
+                        content: Text('Are you sure to delete this post?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              onDelete();
+                            },
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                const PopupMenuItem(
+                    value: 'delete',
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.red),
+                    )),
+              ],
+              icon: const Icon(Icons.more_vert),
+            ),
+        ],
+      ),
     );
   }
 }

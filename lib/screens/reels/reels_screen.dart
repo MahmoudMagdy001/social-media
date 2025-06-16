@@ -126,7 +126,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Failed to load reels.'),
+              const Text('There is no reels to play'),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
@@ -163,6 +163,46 @@ class _ReelsScreenState extends State<ReelsScreen> {
               postService: _postService,
               postId: reels[index].id,
               userId: userId,
+              reels: reels[index],
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Delete this reel'),
+                      content: const Text(
+                        'Are you sure you want to delete this reel?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop(); // Close dialog first
+                            setState(() {
+                              isLoading = true;
+                            });
+
+                            await _postService.deletePost(
+                              postId: reels[index].id,
+                              userId: userId,
+                              isReel: true,
+                            );
+
+                            _loadReels(); // Reload reels
+                          },
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
           );
         },

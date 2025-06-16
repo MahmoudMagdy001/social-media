@@ -9,9 +9,11 @@ class ImagePickerUtils {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxHeight: 600,
-        maxWidth: 600,
+        maxHeight: 800,
+        maxWidth: 800,
+        imageQuality: 80,
       );
+
       if (image == null) return null;
       debugPrint('Picked image path: ${image.path}');
       return File(image.path);

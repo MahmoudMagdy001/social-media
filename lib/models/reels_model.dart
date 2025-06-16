@@ -1,7 +1,7 @@
 class ReelModel {
   final String id;
   final String userId;
-  final String username;
+  final String displayName;
   final String profileImageUrl;
   final String postText;
   final String postVideoUrl;
@@ -10,7 +10,7 @@ class ReelModel {
   ReelModel({
     required this.id,
     required this.userId,
-    required this.username,
+    required this.displayName,
     required this.profileImageUrl,
     required this.postText,
     required this.postVideoUrl,
@@ -21,7 +21,7 @@ class ReelModel {
     return ReelModel(
       id: map['id'] ?? '',
       userId: map['user_id'] ?? '',
-      username: map['username'] ?? '',
+      displayName: map['display_name'] ?? '',
       profileImageUrl: map['profile_image_url'] ?? '',
       postText: map['post_text'] ?? '',
       postVideoUrl: map['post_video_url'] ?? '',

@@ -11,6 +11,7 @@ import '../posts/posts_screen.dart';
 class LayoutScreen extends StatelessWidget {
   final Map<String, dynamic> userData;
   final AuthService authService;
+
   const LayoutScreen({
     super.key,
     required this.userData,
@@ -37,10 +38,10 @@ class LayoutScreen extends StatelessWidget {
               borderRadius: BorderRadius.all(Radius.circular(8)),
             ),
             tabs: [
-              Tab(icon: Icon(Icons.home, size: 32)),
-              Tab(icon: Icon(Icons.ondemand_video, size: 32)),
+              Tab(icon: Icon(Icons.home_outlined, size: 32)),
+              Tab(icon: Icon(Icons.ondemand_video_outlined, size: 32)),
               Tab(icon: Icon(Icons.storefront_outlined, size: 32)),
-              Tab(icon: Icon(Icons.menu, size: 32)),
+              Tab(icon: Icon(Icons.menu_outlined, size: 32)),
             ],
             indicatorSize: TabBarIndicatorSize.tab,
             enableFeedback: null,
@@ -75,7 +76,6 @@ class LayoutScreen extends StatelessWidget {
             children: [
               PostsScreen(),
               ReelsScreen(),
-              // const Center(child: Text('Watch')),
               const Center(child: Text('Market')),
               MenuScreen(authService: authService),
             ],

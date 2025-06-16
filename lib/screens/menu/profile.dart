@@ -218,8 +218,7 @@ class _ProfileHeader extends StatelessWidget {
               const SizedBox(width: 5),
               CustomText(friendsCount == 1 ? 'Friend' : 'Friends'),
               const Spacer(),
-              if (friendsError ==
-                  null) // Only show "show all friends" if no error
+              if (friendsError == null)
                 InkWell(
                   onTap: () {
                     Navigator.of(context).push(
@@ -251,24 +250,38 @@ class _ProfileHeader extends StatelessWidget {
           const SizedBox(height: 10),
           if (friendsList.isNotEmpty)
             SizedBox(
-              height: 80,
-              child: ListView.separated(
+              height: 330,
+              child: GridView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: friendsList.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 15),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1.15,
+                ),
                 itemBuilder: (context, index) {
                   final friend = friendsList[index];
                   return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundImage:
-                            NetworkImage(friend['profile_image'] ?? ''),
-                        backgroundColor: Colors.grey[300],
+                      Container(
+                        width: 140,
+                        height: 130,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          image: DecorationImage(
+                            image: NetworkImage(friend['profile_image'] ?? ''),
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            8,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 5),
                       SizedBox(
-                        width: 60,
+                        width: 70, // Adjust width for text if needed
                         child: Text(
                           friend['display_name'] ?? 'N/A',
                           maxLines: 1,
@@ -281,7 +294,7 @@ class _ProfileHeader extends StatelessWidget {
                   );
                 },
               ),
-            ),
+            )
         ],
       ),
     );
