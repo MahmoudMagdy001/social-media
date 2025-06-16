@@ -130,7 +130,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
   void _navigateToAccountSettings() {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => AccountSetting(), // TODO: Ensure this is correct
+      builder: (context) => AccountSetting(),
     ));
   }
 
@@ -370,7 +370,7 @@ class _AboutSection extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.info_outline),
           title: const CustomText('App Version'),
-          subtitle: const CustomText('1.0.0'), // TODO: Get programmatically
+          subtitle: const CustomText('1.0.0'),
           onTap: () {
             // Could show an About Dialog
           },

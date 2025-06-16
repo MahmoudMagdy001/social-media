@@ -250,15 +250,15 @@ class _ProfileHeader extends StatelessWidget {
           const SizedBox(height: 10),
           if (friendsList.isNotEmpty)
             SizedBox(
-              height: 330,
+              height: friendsCount == 1 ? 142 : 330,
               child: GridView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: friendsList.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: friendsCount == 1 ? 1 : 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 1.15,
+                  childAspectRatio: 1.5,
                 ),
                 itemBuilder: (context, index) {
                   final friend = friendsList[index];
@@ -266,8 +266,8 @@ class _ProfileHeader extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 140,
-                        height: 130,
+                        width: 100,
+                        height: 120,
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           image: DecorationImage(
