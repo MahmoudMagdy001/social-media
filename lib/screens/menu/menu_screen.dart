@@ -122,7 +122,8 @@ class _MenuScreenState extends State<MenuScreen> {
         builder: (context) => UserProfile(
           displayName: _currentDisplayName!,
           imageUrl: _currentProfileImage!,
-          email: _currentUser!.email!,
+          userId: _currentUser!.id,
+          currentUserId: _currentUser!.id,
         ),
       ));
     }

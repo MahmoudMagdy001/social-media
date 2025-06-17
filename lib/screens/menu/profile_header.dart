@@ -9,6 +9,7 @@ class ProfileHeader extends StatelessWidget {
   final List<Map<String, dynamic>> friendsList;
   final FriendService friendService;
   final String? friendsError;
+  final bool isOwner;
 
   const ProfileHeader({
     super.key,
@@ -17,6 +18,7 @@ class ProfileHeader extends StatelessWidget {
     required this.friendsList,
     required this.friendService,
     this.friendsError,
+    required this.isOwner,
   });
 
   @override
@@ -59,6 +61,7 @@ class ProfileHeader extends StatelessWidget {
                           return FriendsList(
                             friendsList: friendsList,
                             friendService: friendService,
+                            isOwner: isOwner,
                           );
                         },
                       ),

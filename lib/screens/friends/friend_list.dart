@@ -8,11 +8,13 @@ import '../../widgets/custom_icon_button.dart';
 class FriendsList extends StatefulWidget {
   final List<Map<String, dynamic>> friendsList;
   final FriendService friendService;
+  final bool isOwner;
 
   const FriendsList({
     super.key,
     required this.friendsList,
     required this.friendService,
+    required this.isOwner,
   });
 
   @override
@@ -133,7 +135,7 @@ class _FriendsListState extends State<FriendsList> {
                     style:
                         TextStyle(color: isDeleting ? Colors.grey : Colors.red),
                   ),
-                ),
+                )
               ],
             );
           },
@@ -229,11 +231,14 @@ class _FriendsListState extends State<FriendsList> {
                               ],
                             ),
                           ),
-                          CustomButton(
-                              onPressed: () {
-                                _deleteFriend(context, friend);
-                              },
-                              text: 'Delete')
+                          widget.isOwner
+                              ? CustomButton(
+                                  onPressed: () {
+                                    _deleteFriend(context, friend);
+                                  },
+                                  text: 'Delete',
+                                )
+                              : SizedBox.shrink()
                         ],
                       );
                     },

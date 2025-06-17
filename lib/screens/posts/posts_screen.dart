@@ -1,5 +1,5 @@
 import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
-import 'package:facebook_clone/screens/posts/posts_section/posts_list.dart';
+import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -104,7 +104,11 @@ class _PostsScreenState extends State<PostsScreen>
                   refreshPosts();
                 },
                 postService: _postService,
-                user: user!,
+                userId: user!.id,
+                onPostDeleted: () async {
+                  refreshPosts();
+                },
+                currentUserId: user!.id,
               )
             ],
           ),

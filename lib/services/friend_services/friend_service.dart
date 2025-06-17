@@ -95,18 +95,19 @@ class FriendService {
   }
 
   Future<List<Map<String, dynamic>>> getFriends(String userId) async {
+    // Step 1: Get all friend rows where userId is user1
     final response = await _supabase
         .from(_friendsTable)
-        .select('user1_id, user2_id')
-        .or('user1_id.eq.$userId,user2_id.eq.$userId');
+        .select(
+            'user2_id') // only need user2_id since user1 is the current user
+        .eq('user1_id', userId);
 
-    // Get friend details
-    final friendIds = response
-        .map((f) => f['user1_id'] == userId ? f['user2_id'] : f['user1_id'])
-        .toList();
+    // Step 2: Extract the list of friend user IDs
+    final friendIds = response.map((f) => f['user2_id'] as String).toList();
 
     if (friendIds.isEmpty) return [];
 
+    // Step 3: Fetch user details for all friend user IDs
     final friends =
         await _supabase.from(_usersTable).select().inFilter('id', friendIds);
 

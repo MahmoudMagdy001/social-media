@@ -1,35 +1,37 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
+import 'package:facebook_clone/screens/menu/profile.dart';
 import 'package:facebook_clone/screens/posts/create_update_post/update_post_screen.dart';
-import 'package:facebook_clone/screens/posts/posts_section/update_delete_options.dart';
-import 'package:facebook_clone/screens/posts/posts_section/reacts_section.dart';
+import 'package:facebook_clone/screens/posts/post_section/update_delete_options.dart';
+import 'package:facebook_clone/screens/posts/post_section/reacts_section.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/comments_modal.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class PostItem extends StatefulWidget {
   final PostDataModel postData;
   final VoidCallback? onPostDeleted;
   final PostService postService;
-  final supabase.User user;
   final Stream<List<CommentModel>> commentsStream;
   final Stream<List<Map<String, dynamic>>> likesStream;
   final Stream<bool> hasUserLikedPost;
   final void Function()? update;
+  final String userId;
+  final String currentUserId;
 
   const PostItem({
     super.key,
     required this.postData,
     this.onPostDeleted,
     required this.postService,
-    required this.user,
     required this.commentsStream,
     required this.likesStream,
     required this.hasUserLikedPost,
     this.update,
+    required this.userId,
+    required this.currentUserId,
   });
 
   @override
@@ -51,7 +53,7 @@ class _PostItemState extends State<PostItem> {
   Future<void> _deletePost() async {
     await widget.postService.deletePost(
       postId: widget.postData.postId,
-      userId: widget.user.id,
+      userId: widget.currentUserId,
       isReel: false,
     );
     widget.onPostDeleted?.call();
@@ -64,11 +66,11 @@ class _PostItemState extends State<PostItem> {
     liked
         ? await widget.postService.removeLike(
             postId: widget.postData.postId,
-            userId: widget.user.id,
+            userId: widget.currentUserId,
           )
         : await widget.postService.addLike(
             postId: widget.postData.postId,
-            userId: widget.user.id,
+            userId: widget.currentUserId,
           );
   }
 
@@ -90,7 +92,8 @@ class _PostItemState extends State<PostItem> {
               widget.update!();
             }
           },
-          currentUserUid: widget.user.id,
+          currentUserUid: widget.currentUserId,
+          userId: widget.postData.userId,
         ),
         const SizedBox(height: 12),
         if (widget.postData.postText.isNotEmpty)
@@ -239,12 +242,14 @@ class _PostUserSection extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onUpdate;
   final String? currentUserUid;
+  final String userId;
 
   const _PostUserSection({
     required this.postData,
     required this.onDelete,
     required this.onUpdate,
     required this.currentUserUid,
+    required this.userId,
   });
 
   @override
@@ -257,10 +262,26 @@ class _PostUserSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Profile Image
-          CircleAvatar(
-            radius: 27,
-            backgroundImage:
-                CachedNetworkImageProvider(postData.profileImageUrl),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return UserProfile(
+                      displayName: postData.displayName,
+                      imageUrl: postData.profileImageUrl,
+                      userId: userId,
+                      currentUserId: currentUserUid!,
+                    );
+                  },
+                ),
+              );
+            },
+            child: CircleAvatar(
+              radius: 27,
+              backgroundImage:
+                  CachedNetworkImageProvider(postData.profileImageUrl),
+            ),
           ),
           const SizedBox(width: 10),
 

@@ -1,25 +1,26 @@
 import 'package:facebook_clone/screens/menu/profile_header.dart';
-import 'package:facebook_clone/screens/posts/posts_section/posts_list.dart';
+import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/services/friend_services/friend_service.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
 import 'package:facebook_clone/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../models/post_data_model.dart';
 
 class UserProfile extends StatefulWidget {
   final String displayName;
   final String imageUrl;
-  final String email;
+  final String userId;
+  final String currentUserId;
 
   const UserProfile({
     super.key,
     required this.displayName,
     required this.imageUrl,
-    required this.email,
+    required this.userId,
+    required this.currentUserId,
   });
 
   @override
@@ -27,27 +28,23 @@ class UserProfile extends StatefulWidget {
 }
 
 class _UserProfileState extends State<UserProfile> {
-  final supabase.User? _currentUser =
-      supabase.Supabase.instance.client.auth.currentUser;
-
   final PostService _postService = PostService();
   final FriendService _friendService = FriendService();
 
   late Future<List<PostDataModel>> _postsFuture;
   late Future<List<Map<String, dynamic>>> _friendsFuture;
+  late bool isOwner;
 
   @override
   void initState() {
     super.initState();
-    if (_currentUser != null) {
-      _loadUserData();
-    }
+    _loadUserData();
   }
 
   void _loadUserData() {
-    if (_currentUser == null) return;
-    _postsFuture = _postService.getPostsForCurrentUser(_currentUser!.id);
-    _friendsFuture = _friendService.getFriends(_currentUser!.id);
+    _postsFuture = _postService.getPostsForCurrentUser(widget.userId);
+    _friendsFuture = _friendService.getFriends(widget.userId);
+    isOwner = widget.userId == widget.currentUserId;
   }
 
   Future<void> _refreshData() async {
@@ -58,22 +55,12 @@ class _UserProfileState extends State<UserProfile> {
 
   void _handlePostDeleted() {
     setState(() {
-      if (_currentUser != null) {
-        _postsFuture = _postService.getPostsForCurrentUser(_currentUser!.id);
-      }
+      _postsFuture = _postService.getPostsForCurrentUser(widget.userId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_currentUser == null) {
-      return const Scaffold(
-        body: Center(
-          child: CustomText('User not logged in. Please log in to continue.'),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -151,7 +138,9 @@ class _UserProfileState extends State<UserProfile> {
             friendService: _friendService,
             friendsError: 'Could not load friends: ${friendsSnapshot.error}',
             postService: _postService,
-            user: _currentUser!,
+            userId: widget.userId,
+            currentUserId: widget.currentUserId,
+            isOwner: isOwner,
           );
         }
 
@@ -166,7 +155,9 @@ class _UserProfileState extends State<UserProfile> {
           friendsList: friends,
           friendService: _friendService,
           postService: _postService,
-          user: _currentUser!,
+          userId: widget.userId,
+          currentUserId: widget.currentUserId,
+          isOwner: isOwner,
         );
       },
     );
@@ -183,7 +174,9 @@ class _PostsListView extends StatelessWidget {
   final FriendService friendService;
   final String? friendsError;
   final PostService postService;
-  final supabase.User user;
+  final String userId;
+  final String currentUserId;
+  final bool isOwner;
 
   const _PostsListView({
     required this.posts,
@@ -193,9 +186,11 @@ class _PostsListView extends StatelessWidget {
     required this.friendsList,
     required this.friendService,
     required this.postService,
-    required this.user,
     this.onPostDeleted,
     this.friendsError,
+    required this.userId,
+    required this.currentUserId,
+    required this.isOwner,
   });
 
   @override
@@ -215,6 +210,7 @@ class _PostsListView extends StatelessWidget {
                   friendsList: friendsList,
                   friendService: friendService,
                   friendsError: friendsError,
+                  isOwner: isOwner,
                 ),
                 const Divider(),
               ],
@@ -233,7 +229,8 @@ class _PostsListView extends StatelessWidget {
               posts: posts,
               onRefresh: onRefresh,
               postService: postService,
-              user: user,
+              userId: userId,
+              currentUserId: currentUserId,
             )
         ],
       ),
