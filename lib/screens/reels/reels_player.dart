@@ -32,9 +32,6 @@ class ReelsPlayerWidget extends StatefulWidget {
 class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
   late Stream<List<CommentModel>> _commentsStream;
   late Stream<List<Map<String, dynamic>>> _likesStream;
-  bool _areControlsVisible = false;
-
-  final double _controlsVisibleOffset = 50.0;
 
   @override
   void initState() {
@@ -42,45 +39,13 @@ class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
     _commentsStream =
         widget.postService.getCommentsForPost(postId: widget.postId);
     _likesStream = widget.postService.getLikesForPost(postId: widget.postId);
-
-    // Listen to player events to infer control visibility
-    widget.chewieController.videoPlayerController
-        .addListener(_updateControlsVisibility);
-  }
-
-  @override
-  void dispose() {
-    widget.chewieController.videoPlayerController
-        .removeListener(_updateControlsVisibility);
-    super.dispose();
-  }
-
-  void _updateControlsVisibility() {
-    final isPlaying =
-        widget.chewieController.videoPlayerController.value.isPlaying;
-    final isFullScreen = widget.chewieController.isFullScreen;
-
-    if (mounted) {
-      setState(() {
-        _areControlsVisible = !isPlaying || isFullScreen;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final double currentBottomOffset =
-        _areControlsVisible ? _controlsVisibleOffset : 0.0;
-
     return GestureDetector(
       onLongPress: widget.onPressed,
-      onTap: () {
-        if (mounted) {
-          setState(() {
-            _areControlsVisible = !_areControlsVisible;
-          });
-        }
-      },
+      onTap: () {},
       child: Stack(
         alignment: Alignment.bottomCenter,
         // Ensures Stack sizes to its children
@@ -88,7 +53,7 @@ class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
           Chewie(controller: widget.chewieController),
           // UI elements positioned from the bottom
           Positioned(
-            bottom: 30 + currentBottomOffset, // Adjusted bottom
+            bottom: 65, // Adjusted bottom
             right: 5,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -139,7 +104,7 @@ class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
                 _ActionButton(
                   icon: Icons.comment_outlined,
                   iconColor: Colors.white,
-                  label: 'Comment', // You might want to show comment count here
+                  label: 'Comment',
                   onPressed: () {
                     showCommentsModal(
                       context,
@@ -149,13 +114,12 @@ class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
                     );
                   },
                 ),
-                // Removed: const SizedBox(width: 16), as it's not effective in a Column for vertical spacing
               ],
             ),
           ),
           Positioned(
-            left: 15,
-            bottom: 15 + currentBottomOffset,
+            left: 20,
+            bottom: 65,
             // Adjusted bottom
             right: 80,
             // Add some right padding to avoid overlap with action buttons
@@ -170,7 +134,8 @@ class _ReelsPlayerWidgetState extends State<ReelsPlayerWidget> {
                       radius: 20, // Slightly smaller avatar
                       backgroundColor: Colors.grey[300],
                       backgroundImage: CachedNetworkImageProvider(
-                          widget.reels.profileImageUrl),
+                        widget.reels.profileImageUrl,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(

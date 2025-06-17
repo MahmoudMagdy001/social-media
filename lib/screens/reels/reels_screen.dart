@@ -48,7 +48,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
 
         final chewieController = ChewieController(
           videoPlayerController: videoController,
-          looping: true,
+          looping: false,
           autoPlay: false,
           aspectRatio: videoController.value.aspectRatio,
         );
