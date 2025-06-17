@@ -1,15 +1,14 @@
-import 'package:facebook_clone/screens/friends/friend_list.dart';
+import 'package:facebook_clone/screens/menu/profile_header.dart';
+import 'package:facebook_clone/screens/posts/posts_section/posts_list.dart';
 import 'package:facebook_clone/services/friend_services/friend_service.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../models/post_data_model.dart';
-import '../posts/posts_section/post_item.dart';
-import '../posts/posts_section/post_shimmer_item.dart';
 
 class UserProfile extends StatefulWidget {
   final String displayName;
@@ -28,7 +27,7 @@ class UserProfile extends StatefulWidget {
 }
 
 class _UserProfileState extends State<UserProfile> {
-  final supabase.User? _currentUser = // Renamed for clarity
+  final supabase.User? _currentUser =
       supabase.Supabase.instance.client.auth.currentUser;
 
   final PostService _postService = PostService();
@@ -53,7 +52,7 @@ class _UserProfileState extends State<UserProfile> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _loadUserData(); // Reload both posts and friends
+      _loadUserData();
     });
   }
 
@@ -101,7 +100,7 @@ class _UserProfileState extends State<UserProfile> {
       future: _postsFuture,
       builder: (context, postsSnapshot) {
         if (postsSnapshot.connectionState == ConnectionState.waiting) {
-          return const _ShimmerList(); // Shows shimmer while posts are loading
+          return const ProfileShimmer();
         }
 
         if (postsSnapshot.hasError) {
@@ -111,9 +110,8 @@ class _UserProfileState extends State<UserProfile> {
         }
 
         if (!postsSnapshot.hasData || postsSnapshot.data!.isEmpty) {
-          // Still need to load friends to show profile header even if no posts
           return _buildFriendsLoaderAndProfileView(
-            posts: const [], // Pass empty list if no posts
+            posts: const [],
             onPostDeleted: _handlePostDeleted,
             onRefresh: _refreshData,
           );
@@ -129,7 +127,6 @@ class _UserProfileState extends State<UserProfile> {
     );
   }
 
-  // New widget to handle loading friends and then displaying the full profile view
   Widget _buildFriendsLoaderAndProfileView({
     required List<PostDataModel> posts,
     required VoidCallback onPostDeleted,
@@ -140,7 +137,7 @@ class _UserProfileState extends State<UserProfile> {
       builder: (context, friendsSnapshot) {
         if (friendsSnapshot.connectionState == ConnectionState.waiting &&
             posts.isEmpty) {
-          return const _ShimmerList(); // Or a more targeted shimmer
+          return const ProfileShimmer();
         }
 
         if (friendsSnapshot.hasError) {
@@ -153,6 +150,8 @@ class _UserProfileState extends State<UserProfile> {
             friendsList: const [],
             friendService: _friendService,
             friendsError: 'Could not load friends: ${friendsSnapshot.error}',
+            postService: _postService,
+            user: _currentUser!,
           );
         }
 
@@ -166,137 +165,10 @@ class _UserProfileState extends State<UserProfile> {
           displayName: widget.displayName,
           friendsList: friends,
           friendService: _friendService,
+          postService: _postService,
+          user: _currentUser!,
         );
       },
-    );
-  }
-}
-
-class _ProfileHeader extends StatelessWidget {
-  final String profileImage;
-  final String displayName;
-  final List<Map<String, dynamic>> friendsList;
-  final FriendService friendService;
-  final String? friendsError; // Optional error message for friends
-
-  const _ProfileHeader({
-    required this.profileImage,
-    required this.displayName,
-    required this.friendsList,
-    required this.friendService,
-    this.friendsError,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final friendsCount = friendsList.length;
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 80,
-            backgroundImage: NetworkImage(profileImage),
-            backgroundColor: Colors.grey[300], // Fallback color
-          ),
-          const SizedBox(height: 10),
-          CustomText(
-            displayName,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          const Divider(),
-          Row(
-            children: [
-              CustomText(
-                friendsCount.toString(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 5),
-              CustomText(friendsCount == 1 ? 'Friend' : 'Friends'),
-              const Spacer(),
-              if (friendsError == null)
-                InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return FriendsList(
-                            friendsList: friendsList,
-                            friendService: friendService,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  child: CustomText(
-                    'show all friends',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          if (friendsError != null) ...[
-            const SizedBox(height: 5),
-            CustomText(friendsError!,
-                style: TextStyle(color: Colors.red, fontSize: 12)),
-          ],
-          const SizedBox(height: 10),
-          if (friendsList.isNotEmpty)
-            SizedBox(
-              height: friendsCount == 1 ? 142 : 330,
-              child: GridView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: friendsList.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: friendsCount == 1 ? 1 : 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1.5,
-                ),
-                itemBuilder: (context, index) {
-                  final friend = friendsList[index];
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          image: DecorationImage(
-                            image: NetworkImage(friend['profile_image'] ?? ''),
-                            fit: BoxFit.cover,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            8,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      SizedBox(
-                        width: 70, // Adjust width for text if needed
-                        child: Text(
-                          friend['display_name'] ?? 'N/A',
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            )
-        ],
-      ),
     );
   }
 }
@@ -309,17 +181,20 @@ class _PostsListView extends StatelessWidget {
   final String displayName;
   final List<Map<String, dynamic>> friendsList;
   final FriendService friendService;
-  final String?
-      friendsError; // Optional error message for friends display in header
+  final String? friendsError;
+  final PostService postService;
+  final supabase.User user;
 
   const _PostsListView({
     required this.posts,
-    this.onPostDeleted,
     required this.onRefresh,
     required this.profileImage,
     required this.displayName,
     required this.friendsList,
     required this.friendService,
+    required this.postService,
+    required this.user,
+    this.onPostDeleted,
     this.friendsError,
   });
 
@@ -331,11 +206,10 @@ class _PostsListView extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            // Using SliverToBoxAdapter for a single complex item
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _ProfileHeader(
+                ProfileHeader(
                   profileImage: profileImage,
                   displayName: displayName,
                   friendsList: friendsList,
@@ -346,119 +220,22 @@ class _PostsListView extends StatelessWidget {
               ],
             ),
           ),
-          if (posts.isEmpty &&
-              friendsError ==
-                  null) // Check friendsError to avoid double message
+          if (posts.isEmpty && friendsError == null)
             SliverFillRemaining(
-              // Use SliverFillRemaining to show message if no posts
               child: Center(
-                  child:
-                      CustomText('No posts available. Pull down to refresh.')),
+                child: CustomText(
+                  'No posts available. Pull down to refresh.',
+                ),
+              ),
             )
           else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final post = posts[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      PostItem(
-                        postData: post,
-                        onPostDeleted: onPostDeleted,
-                      ),
-                      if (index < posts.length - 1)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 5),
-                          child: Divider(),
-                        ),
-                    ],
-                  );
-                },
-                childCount: posts.length,
-              ),
-            ),
+            PostsList(
+              posts: posts,
+              onRefresh: onRefresh,
+              postService: postService,
+              user: user,
+            )
         ],
-      ),
-    );
-  }
-}
-
-class _ShimmerList extends StatelessWidget {
-  const _ShimmerList();
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        // Prevent scrolling of shimmer
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Shimmer for Profile Section
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Colors.white,
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 20,
-                    width: 150,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 10), // For divider space
-                  // Shimmer for friends count area
-                  Row(
-                    children: [
-                      Container(height: 16, width: 30, color: Colors.white),
-                      const SizedBox(width: 5),
-                      Container(height: 16, width: 60, color: Colors.white),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Shimmer for friends list (simplified)
-                  SizedBox(
-                    height: 80,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: 3, // Show a few shimmer friend items
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.only(right: 15.0),
-                        child: Column(
-                          children: [
-                            const CircleAvatar(
-                                radius: 28, backgroundColor: Colors.white),
-                            const SizedBox(height: 5),
-                            Container(
-                                width: 60, height: 12, color: Colors.white),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            const Divider(), // Match the structure
-            // Shimmer for Post Items
-            ListView.builder(
-              // Use ListView.builder for shimmer posts
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3, // Number of shimmer post items
-              itemBuilder: (_, __) =>
-                  const PostShimmerItem(), // Assuming PostShimmerItem handles its own internal dividers or spacing
-            ),
-          ],
-        ),
       ),
     );
   }

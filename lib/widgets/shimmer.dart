@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// A shimmer loading placeholder widget that mimics the structure of a post item.
-/// This widget is used to show a loading state while the actual post content is being fetched.
-class PostShimmerItem extends StatelessWidget {
-  const PostShimmerItem({super.key});
+class ItemShimmer extends StatelessWidget {
+  const ItemShimmer({super.key});
 
   // Constants for shimmer colors
   static const Color _baseColor = Color(0xFFE0E0E0); // Colors.grey[300]
@@ -43,8 +41,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds the user section with avatar and name placeholders.
-  /// Includes a circular avatar and two text lines for name and timestamp.
   Widget _buildUserSection() {
     return Row(
       children: [
@@ -62,8 +58,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds the post text section with placeholder lines.
-  /// Creates two lines of text with different widths to simulate post content.
   Widget _buildPostTextSection(double screenWidth) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,8 +69,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds the post image placeholder.
-  /// Creates a container with aspect ratio 16:9 to simulate a post image.
   Widget _buildPostImageSection(double height) {
     return Container(
       width: double.infinity,
@@ -85,8 +77,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds the stats section showing reactions, comments, and shares.
-  /// Creates three placeholder containers for different stats.
   Widget _buildStatsSection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,8 +88,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds the actions section with placeholders for like, comment, and share buttons.
-  /// Creates three action buttons with icons and labels.
   Widget _buildActionsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
@@ -110,8 +98,6 @@ class PostShimmerItem extends StatelessWidget {
     );
   }
 
-  /// Builds a single action placeholder with icon and text.
-  /// Creates a row with an icon container and a text container.
   Widget _buildActionPlaceholder() {
     return Row(
       children: [
@@ -119,6 +105,101 @@ class PostShimmerItem extends StatelessWidget {
         const SizedBox(width: 5),
         Container(width: 50, height: 12, color: Colors.white),
       ],
+    );
+  }
+}
+
+class ListShimmer extends StatelessWidget {
+  const ListShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      separatorBuilder: (context, index) => Column(
+        children: [
+          const SizedBox(height: 10),
+          Divider(
+            color: Theme.of(context).dividerColor.withAlpha(50),
+          ),
+          const SizedBox(height: 5),
+        ],
+      ),
+      itemCount: 5,
+      itemBuilder: (_, __) => const ItemShimmer(),
+    );
+  }
+}
+
+class ProfileShimmer extends StatelessWidget {
+  const ProfileShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CircleAvatar(
+                    radius: 80,
+                    backgroundColor: Colors.white,
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 20,
+                    width: 150,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Container(height: 16, width: 30, color: Colors.white),
+                      const SizedBox(width: 5),
+                      Container(height: 16, width: 60, color: Colors.white),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: 3,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.only(right: 15.0),
+                        child: Column(
+                          children: [
+                            const CircleAvatar(
+                                radius: 28, backgroundColor: Colors.white),
+                            const SizedBox(height: 5),
+                            Container(
+                                width: 60, height: 12, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+            const Divider(),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 3,
+              itemBuilder: (_, __) => const ItemShimmer(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

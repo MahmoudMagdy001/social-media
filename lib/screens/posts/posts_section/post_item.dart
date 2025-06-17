@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/screens/posts/create_update_post/update_post_screen.dart';
-import 'package:facebook_clone/screens/posts/posts_section/options_update_delete.dart';
+import 'package:facebook_clone/screens/posts/posts_section/update_delete_options.dart';
 import 'package:facebook_clone/screens/posts/posts_section/reacts_section.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/widgets/comments_modal.dart';
@@ -13,11 +13,23 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 class PostItem extends StatefulWidget {
   final PostDataModel postData;
   final VoidCallback? onPostDeleted;
+  final PostService postService;
+  final supabase.User user;
+  final Stream<List<CommentModel>> commentsStream;
+  final Stream<List<Map<String, dynamic>>> likesStream;
+  final Stream<bool> hasUserLikedPost;
+  final void Function()? update;
 
   const PostItem({
     super.key,
     required this.postData,
     this.onPostDeleted,
+    required this.postService,
+    required this.user,
+    required this.commentsStream,
+    required this.likesStream,
+    required this.hasUserLikedPost,
+    this.update,
   });
 
   @override
@@ -25,45 +37,23 @@ class PostItem extends StatefulWidget {
 }
 
 class _PostItemState extends State<PostItem> {
-  final PostService _postService = PostService();
-  final user = supabase.Supabase.instance.client.auth.currentUser;
-
-  late Stream<List<CommentModel>> _commentsStream;
-  late Stream<List<Map<String, dynamic>>> _likesStream;
-  late Stream<bool> _hasUserLikedPost;
-
-  late PostDataModel _postData;
-
   @override
   void initState() {
     super.initState();
-    _initializeStreams();
-  }
-
-  void _initializeStreams() {
-    _postData = widget.postData;
-
-    _commentsStream =
-        _postService.getCommentsForPost(postId: _postData.documentId);
-    _likesStream = _postService.getLikesForPost(postId: _postData.documentId);
-    _hasUserLikedPost = _postService.hasUserLikedPost(
-      postId: _postData.documentId,
-      userId: user?.id ?? '',
-    );
   }
 
   @override
   void didUpdateWidget(covariant PostItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.postData.documentId != widget.postData.documentId) {
-      _initializeStreams();
-    }
+    if (oldWidget.postData.documentId != widget.postData.documentId) {}
   }
 
   Future<void> _deletePost() async {
-    if (user == null) return;
-    await _postService.deletePost(
-        postId: _postData.postId, userId: user!.id, isReel: false);
+    await widget.postService.deletePost(
+      postId: widget.postData.postId,
+      userId: widget.user.id,
+      isReel: false,
+    );
     widget.onPostDeleted?.call();
     if (mounted) {
       showOptions(context);
@@ -71,42 +61,46 @@ class _PostItemState extends State<PostItem> {
   }
 
   Future<void> _toggleLike(bool liked) async {
-    if (user == null) return;
     liked
-        ? await _postService.removeLike(
-            postId: _postData.postId, userId: user!.id)
-        : await _postService.addLike(
-            postId: _postData.postId, userId: user!.id);
+        ? await widget.postService.removeLike(
+            postId: widget.postData.postId,
+            userId: widget.user.id,
+          )
+        : await widget.postService.addLike(
+            postId: widget.postData.postId,
+            userId: widget.user.id,
+          );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (user == null) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _PostUserSection(
-          postData: _postData,
+          postData: widget.postData,
           onDelete: _deletePost,
-          onUpdate: () {
-            Navigator.of(context).push(
+          onUpdate: () async {
+            final result = await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => UpdatePostScreen(post: _postData),
+                builder: (_) => UpdatePostScreen(post: widget.postData),
               ),
             );
+            if (result == true) {
+              widget.update!();
+            }
           },
-          currentUserUid: user?.id,
+          currentUserUid: widget.user.id,
         ),
         const SizedBox(height: 12),
-        if (_postData.postText.isNotEmpty)
+        if (widget.postData.postText.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: CustomText(
-                  _postData.postText,
+                  widget.postData.postText,
                   style: Theme.of(context)
                       .textTheme
                       .bodyLarge
@@ -116,12 +110,12 @@ class _PostItemState extends State<PostItem> {
               const SizedBox(height: 12),
             ],
           ),
-        if (_postData.postImageUrl != null)
+        if (widget.postData.postImageUrl != null)
           Column(
             children: [
               CachedNetworkImage(
                 width: double.infinity,
-                imageUrl: _postData.postImageUrl!,
+                imageUrl: widget.postData.postImageUrl!,
                 errorWidget: (context, url, error) => Icon(Icons.error),
               ),
               const SizedBox(height: 12),
@@ -131,16 +125,16 @@ class _PostItemState extends State<PostItem> {
           onTap: () {
             showCommentsModal(
               context,
-              postId: _postData.documentId,
-              likesStream: _likesStream,
-              commentsStream: _commentsStream,
+              postId: widget.postData.documentId,
+              likesStream: widget.likesStream,
+              commentsStream: widget.commentsStream,
             );
           },
           child: reactsSection(
             context,
-            commentsStream: _commentsStream,
-            likesStream: _likesStream,
-            sharesCount: _postData.sharesCount,
+            commentsStream: widget.commentsStream,
+            likesStream: widget.likesStream,
+            sharesCount: widget.postData.sharesCount,
           ),
         ),
         _buildInteractionButtons(),
@@ -165,7 +159,7 @@ class _PostItemState extends State<PostItem> {
     final theme = Theme.of(context);
 
     return StreamBuilder<bool>(
-      stream: _hasUserLikedPost,
+      stream: widget.hasUserLikedPost,
       builder: (context, snapshot) {
         final hasLiked = snapshot.data ?? false;
 
@@ -198,9 +192,9 @@ class _PostItemState extends State<PostItem> {
       onPressed: () {
         showCommentsModal(
           context,
-          postId: _postData.documentId,
-          likesStream: _likesStream,
-          commentsStream: _commentsStream,
+          postId: widget.postData.documentId,
+          likesStream: widget.likesStream,
+          commentsStream: widget.commentsStream,
         );
       },
       icon: Icon(
