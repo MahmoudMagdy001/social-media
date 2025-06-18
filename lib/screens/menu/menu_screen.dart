@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/screens/menu/account_setting.dart'; // Ensure this path is correct
+import 'package:facebook_clone/screens/menu/privacy_policy_screen.dart';
 import 'package:facebook_clone/screens/menu/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -140,12 +141,6 @@ class _MenuScreenState extends State<MenuScreen> {
         ?.changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
   }
 
-  void _showPrivacyPolicySnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('View Privacy Policy (Not Implemented)')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoadingProfile && _currentUser != null) {
@@ -210,7 +205,15 @@ class _MenuScreenState extends State<MenuScreen> {
           const Divider(),
           _AboutSection(
             sectionHeaderColor: sectionHeaderColor,
-            onPrivacyPolicyTap: _showPrivacyPolicySnackbar,
+            onPrivacyPolicyTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return PrivacyPolicyScreen();
+                  },
+                ),
+              );
+            },
           ),
           const Divider(),
           _MenuItemTile(

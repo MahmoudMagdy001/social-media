@@ -94,7 +94,7 @@ class MyAppState extends State<MyApp> {
           );
         }
 
-        //TODO add bloc pattern
+        //TODO add BLoc pattern
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,

@@ -246,7 +246,6 @@ class _FriendsListState extends State<FriendsList> {
                 )
               else
                 Expanded(
-                  // Use Expanded to center the empty state message
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

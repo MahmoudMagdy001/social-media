@@ -347,26 +347,24 @@ class _FriendsScreenState extends State<FriendsScreen> {
     String? secoundText,
   ) {
     if (users.isEmpty) {
-      return Expanded(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.people_outline, size: 60, color: Colors.grey[500]),
-              const SizedBox(height: 16),
-              Text(
-                firstText,
-                style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                secoundText ?? '',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people_outline, size: 60, color: Colors.grey[500]),
+            const SizedBox(height: 16),
+            Text(
+              firstText,
+              style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              secoundText ?? '',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       );
     }

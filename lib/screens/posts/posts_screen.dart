@@ -1,3 +1,4 @@
+import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
@@ -17,21 +18,23 @@ class PostsScreen extends StatefulWidget {
 class _PostsScreenState extends State<PostsScreen>
     with AutomaticKeepAliveClientMixin<PostsScreen> {
   final PostService _postService = PostService();
-
   late Future<List<PostDataModel>> _postsFuture;
-
   final user = supabase.Supabase.instance.client.auth.currentUser;
 
   @override
   void initState() {
     super.initState();
-    _postsFuture = _postService.getFriendsPosts(user!.id);
+    _loadPosts();
   }
 
-  void refreshPosts() {
+  void _loadPosts() {
     setState(() {
       _postsFuture = _postService.getFriendsPosts(user!.id);
     });
+  }
+
+  Future<void> _handleRefresh() async {
+    _loadPosts();
   }
 
   @override
@@ -47,28 +50,31 @@ class _PostsScreenState extends State<PostsScreen>
           child: Column(
             children: [
               Expanded(
-                child: _buildPostsList(),
+                child: RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  child: _buildPostsContent(),
+                ),
               ),
             ],
           ),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   tooltip: 'Create Post',
-      //   onPressed: () async {
-      //     final result = await Navigator.of(context).push(MaterialPageRoute(
-      //       builder: (context) => CreatePostScreen(),
-      //     ));
-      //     if (result == true) {
-      //       refreshPosts();
-      //     }
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Create Post',
+        onPressed: () async {
+          final result = await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => CreatePostScreen(),
+          ));
+          if (result == true) {
+            _loadPosts();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
-  Widget _buildPostsList() {
+  Widget _buildPostsContent() {
     return FutureBuilder<List<PostDataModel>>(
       future: _postsFuture,
       builder: (context, snapshot) {
@@ -77,59 +83,72 @@ class _PostsScreenState extends State<PostsScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return const Center(
-            child: CustomText('No posts available or failed to load.'),
-          );
+          return _buildEmptyState(scrollable: true);
         }
 
         final posts = snapshot.data!;
 
         if (posts.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.article_outlined, size: 60, color: Colors.grey[500]),
-                const SizedBox(height: 16),
-                Text(
-                  'You have no Posts yet.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Be the first to post!',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return _buildEmptyState();
         }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            refreshPosts();
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              PostsList(
-                posts: posts,
-                onRefresh: () async {
-                  refreshPosts();
-                },
-                postService: _postService,
-                userId: user!.id,
-                onPostDeleted: () async {
-                  refreshPosts();
-                },
-                currentUserId: user!.id,
-              )
-            ],
-          ),
+        return CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            PostsList(
+              posts: posts,
+              onRefresh: _handleRefresh,
+              postService: _postService,
+              userId: user!.id,
+              onPostDeleted: _loadPosts,
+              currentUserId: user!.id,
+            )
+          ],
         );
       },
     );
+  }
+
+  Widget _buildEmptyState({bool scrollable = false}) {
+    final content = Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.article_outlined, size: 60, color: Colors.grey[500]),
+          const SizedBox(height: 16),
+          CustomText(
+            'You have no Posts yet.',
+            style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          CustomText(
+            'Be the first to post!',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(
+            height: 15,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _loadPosts();
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+
+    return scrollable
+        ? CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverFillRemaining(
+                child: content,
+              ),
+            ],
+          )
+        : content;
   }
 }

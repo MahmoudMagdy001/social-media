@@ -46,6 +46,7 @@ dependencies:
   chewie: ^1.11.3
   timeago: ^3.7.1
   flutter_native_splash: ^2.4.6
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

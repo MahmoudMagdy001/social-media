@@ -42,7 +42,6 @@ class ProfileHeader extends StatelessWidget {
               fontSize: 20,
             ),
           ),
-          const Divider(),
           Row(
             children: [
               CustomText(
@@ -51,6 +50,12 @@ class ProfileHeader extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               CustomText(friendsCount == 1 ? 'Friend' : 'Friends'),
+            ],
+          ),
+          const Divider(),
+          Row(
+            children: [
+              CustomText('Friends'),
               const Spacer(),
               if (friendsError == null)
                 InkWell(
@@ -79,8 +84,13 @@ class ProfileHeader extends StatelessWidget {
           ),
           if (friendsError != null) ...[
             const SizedBox(height: 5),
-            CustomText(friendsError!,
-                style: TextStyle(color: Colors.red, fontSize: 12)),
+            CustomText(
+              friendsError!,
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
           ],
           const SizedBox(height: 10),
           if (friendsList.isNotEmpty)
