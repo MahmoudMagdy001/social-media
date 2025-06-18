@@ -1,6 +1,5 @@
-import 'package:facebook_clone/services/auth_services/auth_service.dart'; // Your AuthService
+import 'package:facebook_clone/services/auth_services/auth_service.dart';
 import 'package:flutter/material.dart';
-
 import '../../widgets/custom_text.dart';
 import '../Auth/login_screen.dart';
 import 'layout_screen.dart';
@@ -14,7 +13,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final AuthService _authService = AuthService();
-  static const _splashDuration = Duration(seconds: 2);
+  static const _splashDuration = Duration(seconds: 20); // Optional
 
   @override
   void initState() {
@@ -23,12 +22,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLoginStatusAndNavigate() async {
-    await Future.delayed(_splashDuration);
+    await Future.delayed(_splashDuration); // Optional, can be removed
     if (!mounted) return;
 
     final user = await _authService.currentUser;
     final nextScreen = user != null
-        ? LayoutScreen(userData: user, authService: _authService)
+        ? LayoutScreen(authService: _authService)
         : LoginScreen(authService: _authService);
 
     if (mounted) {
@@ -41,15 +40,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.facebook, size: 100, color: Colors.blue),
+              // Icon(Icons.facebook, size: 100, color: Colors.blue),
+              Image.asset('assets/logo/logo-production.png'),
               CustomText(
-                'dodybook',
+                'Social Media',
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,

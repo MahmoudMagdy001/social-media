@@ -219,8 +219,24 @@ class _PostsListView extends StatelessWidget {
           if (posts.isEmpty && friendsError == null)
             SliverFillRemaining(
               child: Center(
-                child: CustomText(
-                  'No posts available. Pull down to refresh.',
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.article_outlined,
+                        size: 60, color: Colors.grey[500]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'You have no Posts yet.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Share the post with others!',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             )

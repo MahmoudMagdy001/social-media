@@ -1,4 +1,3 @@
-import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
@@ -54,18 +53,18 @@ class _PostsScreenState extends State<PostsScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Create Post',
-        onPressed: () async {
-          final result = await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => CreatePostScreen(),
-          ));
-          if (result == true) {
-            refreshPosts();
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   tooltip: 'Create Post',
+      //   onPressed: () async {
+      //     final result = await Navigator.of(context).push(MaterialPageRoute(
+      //       builder: (context) => CreatePostScreen(),
+      //     ));
+      //     if (result == true) {
+      //       refreshPosts();
+      //     }
+      //   },
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 
@@ -86,8 +85,25 @@ class _PostsScreenState extends State<PostsScreen>
         final posts = snapshot.data!;
 
         if (posts.isEmpty) {
-          return const Center(
-            child: CustomText('No posts yet. Be the first to post!'),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.article_outlined, size: 60, color: Colors.grey[500]),
+                const SizedBox(height: 16),
+                Text(
+                  'You have no Posts yet.',
+                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Be the first to post!',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           );
         }
 

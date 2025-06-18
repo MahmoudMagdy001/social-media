@@ -321,7 +321,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       return status == null || status == FriendRequestStatus.none;
     }).toList();
 
-    return _buildUserList(suggestions);
+    return _buildUserList(suggestions, 'No users suggestions', '');
   }
 
   Widget _buildSentRequestsTab() {
@@ -329,7 +329,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       return _requestStatus[user['id']] == FriendRequestStatus.sent;
     }).toList();
 
-    return _buildUserList(sentRequests);
+    return _buildUserList(sentRequests, 'You don\'t send any request', '');
   }
 
   Widget _buildReceivedRequestsTab() {
@@ -337,12 +337,38 @@ class _FriendsScreenState extends State<FriendsScreen> {
       return _requestStatus[user['id']] == FriendRequestStatus.received;
     }).toList();
 
-    return _buildUserList(receivedRequests);
+    return _buildUserList(
+        receivedRequests, 'There is no received friend request', '');
   }
 
-  Widget _buildUserList(List<Map<String, dynamic>> users) {
+  Widget _buildUserList(
+    List<Map<String, dynamic>> users,
+    String firstText,
+    String? secoundText,
+  ) {
     if (users.isEmpty) {
-      return const Center(child: Text('No users found'));
+      return Expanded(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people_outline, size: 60, color: Colors.grey[500]),
+              const SizedBox(height: 16),
+              Text(
+                firstText,
+                style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                secoundText ?? '',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return ListView.builder(

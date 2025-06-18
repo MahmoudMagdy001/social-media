@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await authService.signInWithEmailAndPassword(
+      await authService.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -53,7 +53,6 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => LayoutScreen(
-              userData: user,
               authService: authService,
             ),
           ),

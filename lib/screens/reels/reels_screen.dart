@@ -126,8 +126,28 @@ class _ReelsScreenState extends State<ReelsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('There is no reels to play'),
-              const SizedBox(height: 10),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.ondemand_video_outlined,
+                        size: 60, color: Colors.grey[500]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'You have no Reels yet.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Start Share the reel with others!',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
               ElevatedButton(
                 onPressed: () {
                   setState(() {

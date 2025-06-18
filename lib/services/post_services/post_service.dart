@@ -117,16 +117,16 @@ class PostService {
   Future<void> deletePost({
     required String postId,
     required String userId,
-    bool isReel = false, // Add this parameter to specify if it's a reel
+    bool isReel = false,
   }) async {
     if (postId.isEmpty) throw ArgumentError('Post ID cannot be empty');
     if (userId.isEmpty) throw ArgumentError('User ID cannot be empty');
 
     final String tableName = isReel ? _reelsTable : _postsTable;
-    // Determine the path field based on whether it's a reel or a post
     final String pathField = isReel ? 'post_video_path' : 'post_image_path';
 
     await executeWithRetry(() async {
+      // Fetch the post/reel to verify ownership and get file path
       final post =
           await _supabase.from(tableName).select().eq('id', postId).single();
 
@@ -134,25 +134,22 @@ class PostService {
         throw Exception('Not authorized to delete this post');
       }
 
-      // Check if there's an associated file (image or video)
-      final postFilePath = post[pathField];
-      if (postFilePath != null && (postFilePath as String).isNotEmpty) {
-        try {
-          debugPrint(
-              'Attempting to delete file at storage path: $postFilePath');
-          await _supabase.storage.from(_storageBucket).remove([postFilePath]);
-          debugPrint('File deleted successfully from storage');
-        } catch (e) {
-          // It's often okay if the storage deletion fails (e.g., file already deleted)
-          // but you should log it for debugging.
-          debugPrint('Failed to delete post file from storage: $e');
-        }
-      }
-
-      // Delete the post/reel entry from the database
+      // Delete the database record first
       await _supabase.from(tableName).delete().eq('id', postId);
       debugPrint(
           '${isReel ? "Reel" : "Post"} deleted successfully from database');
+
+      // Handle file deletion after successful database operation
+      final postFilePath = post[pathField] as String?;
+      if (postFilePath != null && postFilePath.isNotEmpty) {
+        try {
+          await _supabase.storage.from(_storageBucket).remove([postFilePath]);
+          debugPrint('File deleted successfully from storage');
+        } catch (e) {
+          debugPrint('Failed to delete post file from storage: $e');
+          // Consider adding retry logic for storage deletion here if needed
+        }
+      }
     }, maxRetries: _maxRetries, retryDelay: _retryDelay);
   }
 
