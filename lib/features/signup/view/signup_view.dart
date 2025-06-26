@@ -1,10 +1,9 @@
 import 'dart:io';
 
+import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../screens/Auth/login_screen.dart';
-import '../../../services/auth_services/auth_service.dart';
 import '../../../core/widgets/custom_text.dart';
 import '../viewmodel/signup_cubit.dart';
 import '../viewmodel/signup_state.dart';
@@ -12,14 +11,12 @@ import 'widgets/user_image.dart';
 import 'widgets/user_info.dart';
 
 class SignupView extends StatelessWidget {
-  final AuthService authService;
-
-  const SignupView({super.key, required this.authService});
+  const SignupView({super.key});
 
   void _navigateToLogin(BuildContext context) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => LoginScreen(authService: authService),
+        builder: (context) => SigninView(),
       ),
     );
   }

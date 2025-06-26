@@ -1,7 +1,6 @@
 import 'package:facebook_clone/core/consts/theme.dart';
-import 'package:facebook_clone/screens/Auth/login_screen.dart';
+import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:facebook_clone/screens/layout/layout_screen.dart';
-import 'package:facebook_clone/services/auth_services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +39,6 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.light;
   static const String _themePreferenceKey = 'theme_preference';
-  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -74,13 +72,9 @@ class MyAppState extends State<MyApp> {
   Future<Widget> _checkLoginStatus() async {
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      return LayoutScreen(
-        authService: _authService,
-      );
+      return LayoutScreen();
     } else {
-      return LoginScreen(
-        authService: _authService,
-      );
+      return SigninView();
     }
   }
 

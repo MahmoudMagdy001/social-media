@@ -14,9 +14,8 @@ class SignupCubit extends Cubit<SignupState> {
         ));
 
   final supabase.SupabaseClient _supabase = supabase.Supabase.instance.client;
-
-  static const String _storageBucket = 'profile-images';
   static const String _usersTable = 'users';
+  static const String _storageBucket = 'profile-images';
 
   // Form State
   final formKey = GlobalKey<FormState>();

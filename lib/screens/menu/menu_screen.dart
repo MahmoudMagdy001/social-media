@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:facebook_clone/screens/menu/account_setting.dart'; // Ensure this path is correct
 import 'package:facebook_clone/screens/menu/privacy_policy_screen.dart';
 import 'package:facebook_clone/screens/menu/profile.dart';
@@ -6,16 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../main.dart'; // Ensure this path is correct
-import '../../services/auth_services/auth_service.dart'; // Ensure this path is correct
 import '../../core/widgets/custom_text.dart'; // Ensure this path is correct
-import '../Auth/login_screen.dart'; // Ensure this path is correct
 
 class MenuScreen extends StatefulWidget {
-  final AuthService authService;
-
   const MenuScreen({
     super.key,
-    required this.authService,
   });
 
   @override
@@ -83,12 +79,12 @@ class _MenuScreenState extends State<MenuScreen> {
     );
 
     try {
-      await widget.authService.signOut();
+      supabase.Supabase.instance.client.auth.signOut();
       if (mounted) {
         Navigator.of(context).pop(); // Pops the dialog
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => LoginScreen(authService: widget.authService),
+            builder: (context) => SigninView(),
           ),
           (Route<dynamic> route) => false,
         );
@@ -110,7 +106,7 @@ class _MenuScreenState extends State<MenuScreen> {
   void _navigateToLogin() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => LoginScreen(authService: widget.authService),
+        builder: (context) => SigninView(),
       ),
     );
   }

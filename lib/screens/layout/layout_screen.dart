@@ -5,15 +5,11 @@ import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
 import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/auth_services/auth_service.dart';
 import '../posts/posts_screen.dart';
 
 class LayoutScreen extends StatelessWidget {
-  final AuthService authService;
-
   const LayoutScreen({
     super.key,
-    required this.authService,
   });
 
   @override
@@ -75,7 +71,7 @@ class LayoutScreen extends StatelessWidget {
               PostsScreen(),
               ReelsScreen(),
               const Center(child: Text('Market')),
-              MenuScreen(authService: authService),
+              MenuScreen(),
             ],
           ),
         ),
