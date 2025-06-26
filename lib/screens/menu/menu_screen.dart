@@ -1,77 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:facebook_clone/features/signin/view/signin_view.dart';
-import 'package:facebook_clone/screens/menu/account_setting.dart'; // Ensure this path is correct
-import 'package:facebook_clone/screens/menu/privacy_policy_screen.dart';
-import 'package:facebook_clone/screens/menu/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-import '../../main.dart'; // Ensure this path is correct
-import '../../core/widgets/custom_text.dart'; // Ensure this path is correct
+import '../../core/widgets/custom_text.dart';
+import '../../features/layout/model/layout_model.dart';
+import '../../features/signin/view/signin_view.dart';
+import '../../main.dart';
+import 'account_setting.dart';
+import 'privacy_policy_screen.dart';
+import 'profile.dart';
 
-class MenuScreen extends StatefulWidget {
+class MenuScreen extends StatelessWidget {
+  final UserModel user;
   const MenuScreen({
     super.key,
+    required this.user,
   });
 
-  @override
-  State<MenuScreen> createState() => _MenuScreenState();
-}
-
-class _MenuScreenState extends State<MenuScreen> {
-  final supabase.User? _currentUser =
-      supabase.Supabase.instance.client.auth.currentUser;
-
-  String? _currentProfileImage;
-  String? _currentDisplayName;
-  bool _isLoadingProfile = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserProfile();
-  }
-
-  Future<void> _fetchUserProfile() async {
-    if (_currentUser == null) {
-      if (mounted) {
-        setState(() => _isLoadingProfile = false);
-      }
-      debugPrint("MenuScreen: No current user found.");
-      return;
-    }
-
-    try {
-      final userData = await supabase.Supabase.instance.client
-          .from('users')
-          .select('display_name, email, profile_image')
-          .eq('id', _currentUser!.id)
-          .single();
-
-      if (mounted) {
-        setState(() {
-          _currentDisplayName = userData['display_name'] as String? ?? '';
-          _currentProfileImage = userData['profile_image'] as String?;
-          _isLoadingProfile = false;
-          debugPrint('currentProfileImage: $_currentProfileImage');
-          debugPrint('currentDisplayName: $_currentDisplayName');
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingProfile = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: CustomText('Error loading profile data: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      debugPrint("Error fetching user profile: ${e.toString()}");
-    }
-  }
-
-  Future<void> _handleLogout() async {
+  Future<void> _handleLogout(BuildContext context) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -80,7 +26,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
     try {
       supabase.Supabase.instance.client.auth.signOut();
-      if (mounted) {
+      if (context.mounted) {
         Navigator.of(context).pop(); // Pops the dialog
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -90,7 +36,7 @@ class _MenuScreenState extends State<MenuScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -103,73 +49,34 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  void _navigateToLogin() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => SigninView(),
+  void _navigateToUserProfile(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => UserProfile(
+        displayName: user.displayName,
+        imageUrl: user.profileImage,
+        userId: user.id,
+        currentUserId: user.id,
       ),
-    );
+    ));
   }
 
-  void _navigateToUserProfile() {
-    if (_currentUser != null &&
-        _currentDisplayName != null &&
-        _currentProfileImage != null) {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => UserProfile(
-          displayName: _currentDisplayName!,
-          imageUrl: _currentProfileImage!,
-          userId: _currentUser!.id,
-          currentUserId: _currentUser!.id,
-        ),
-      ));
-    }
-  }
-
-  void _navigateToAccountSettings() {
+  void _navigateToAccountSettings(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => AccountSetting(),
     ));
   }
 
-  void _handleThemeChange(bool isDarkMode) {
+  void _handleThemeChange(BuildContext context, bool isDarkMode) {
     MyApp.of(context)
         ?.changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingProfile && _currentUser != null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (_currentUser == null) {
-      return _buildLoggedOutView();
-    }
-
-    return _buildLoggedInView();
+    return _buildLoggedInView(context);
   }
 
-  Widget _buildLoggedOutView() {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Menu")), // Added a title for context
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("You are not logged in."),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _navigateToLogin,
-              child: const Text("Go to Login"),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoggedInView() {
+  Widget _buildLoggedInView(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final sectionHeaderColor = _getSectionHeaderColor(context, isDarkMode);
 
@@ -179,10 +86,12 @@ class _MenuScreenState extends State<MenuScreen> {
         children: [
           const SizedBox(height: 20),
           _ProfileSection(
-            displayName: _currentDisplayName,
-            email: _currentUser?.email,
-            profileImageUrl: _currentProfileImage,
-            onTap: _navigateToUserProfile,
+            displayName: user.displayName,
+            email: user.email,
+            profileImageUrl: user.profileImage,
+            onTap: () {
+              _navigateToUserProfile(context);
+            },
           ),
           const Divider(),
           _MenuSectionHeader(title: 'General', color: sectionHeaderColor),
@@ -190,13 +99,17 @@ class _MenuScreenState extends State<MenuScreen> {
             icon: Icons.account_circle,
             title: 'Account Settings',
             subtitle: 'Manage your account details',
-            onTap: _navigateToAccountSettings,
+            onTap: () {
+              _navigateToAccountSettings(context);
+            },
           ),
           const Divider(),
           _AppearanceSection(
             sectionHeaderColor: sectionHeaderColor,
             isDarkMode: isDarkMode,
-            onThemeChanged: _handleThemeChange,
+            onThemeChanged: (bool value) {
+              _handleThemeChange(context, value);
+            },
           ),
           const Divider(),
           _AboutSection(
@@ -217,7 +130,9 @@ class _MenuScreenState extends State<MenuScreen> {
             title: 'Logout',
             titleColor: Colors.red[700],
             iconColor: Colors.red[700],
-            onTap: _handleLogout,
+            onTap: () {
+              _handleLogout(context);
+            },
           ),
           const SizedBox(height: 20), // Added some padding at the bottom
         ],

@@ -1,6 +1,6 @@
 import 'package:facebook_clone/core/consts/theme.dart';
+import 'package:facebook_clone/features/layout/view/layout_view.dart';
 import 'package:facebook_clone/features/signin/view/signin_view.dart';
-import 'package:facebook_clone/screens/layout/layout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,7 +72,7 @@ class MyAppState extends State<MyApp> {
   Future<Widget> _checkLoginStatus() async {
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      return LayoutScreen();
+      return LayoutView();
     } else {
       return SigninView();
     }

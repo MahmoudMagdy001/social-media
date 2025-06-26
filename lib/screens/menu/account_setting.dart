@@ -269,7 +269,7 @@ class _AccountSettingState extends State<AccountSetting> {
           setState(() {
             updateLoading = true;
           });
-          await authService.updateUserProfile(
+          await authService.update(
             displayName: _displayNameController.text.trim(),
             newProfileImage: newProfileImage,
             oldImageUrl: currentProfileImage,

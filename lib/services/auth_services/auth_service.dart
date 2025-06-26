@@ -10,7 +10,7 @@ class AuthService {
 
   static const String _usersTable = 'users';
 
-  Future<Map<String, dynamic>> updateUserProfile({
+  Future<Map<String, dynamic>> update({
     String? displayName,
     File? newProfileImage,
     String? oldImageUrl,

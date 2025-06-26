@@ -1,9 +1,9 @@
+import 'package:facebook_clone/features/layout/view/layout_view.dart';
 import 'package:facebook_clone/features/signin/viewmodel/signin_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_text.dart';
-import '../../../screens/layout/layout_screen.dart';
 import '../viewmodel/signin_cubit.dart';
 import 'widget/action_button.dart';
 import 'widget/user_info.dart';
@@ -13,7 +13,7 @@ class SigninView extends StatelessWidget {
 
   void _navigateToLayout(BuildContext context) {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (context) => LayoutScreen(),
+      builder: (context) => LayoutView(),
     ));
   }
 

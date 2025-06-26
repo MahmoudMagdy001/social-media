@@ -7,7 +7,6 @@ class SigninCubit extends Cubit<SigninState> {
   SigninCubit() : super(SigninState(status: SigninStatus.initial));
 
   final supabase.SupabaseClient _supabase = supabase.Supabase.instance.client;
-  static const String _usersTable = 'users';
 
   // Form State
   final formKey = GlobalKey<FormState>();
@@ -33,22 +32,16 @@ class SigninCubit extends Cubit<SigninState> {
         email: email,
         password: password,
       );
-      final user = response.user;
 
-      if (user == null) {
+      if (response.user == null) {
         emit(state.copyWith(
             status: SigninStatus.signinerror,
             message: 'Failed to signin user account'));
         return;
       }
 
-      final userData = await _supabase
-          .from(_usersTable)
-          .select()
-          .eq('id', response.user!.id)
-          .single();
-
-      emit(state.copyWith(status: SigninStatus.signinsuccess, data: userData));
+      emit(state.copyWith(
+          status: SigninStatus.signinsuccess, data: response.user));
     } on supabase.AuthException catch (e) {
       _handleAuthException(e, 'sign in');
     } catch (e) {
@@ -61,20 +54,25 @@ class SigninCubit extends Cubit<SigninState> {
   void _handleAuthException(supabase.AuthException e, String operation) {
     final msg = e.message;
 
-    if (msg.contains('Email already registered')) {
-      emit(state.copyWith(
-        status: SigninStatus.signinerror,
-        message: 'This email is already registered.',
-      ));
-    } else if (msg.contains('Invalid email')) {
-      emit(state.copyWith(
-        status: SigninStatus.signinerror,
-        message: 'The email address is invalid.',
-      ));
-    } else if (msg.contains('Invalid login credentials')) {
+    if (msg.contains('Invalid login credentials')) {
       emit(state.copyWith(
         status: SigninStatus.signinerror,
         message: 'Wrong email or password.',
+      ));
+    } else if (msg.contains('Email not confirmed')) {
+      emit(state.copyWith(
+        status: SigninStatus.signinerror,
+        message: 'Please confirm your email address.',
+      ));
+    } else if (msg.contains('User not found')) {
+      emit(state.copyWith(
+        status: SigninStatus.signinerror,
+        message: 'No user found with this email.',
+      ));
+    } else if (msg.contains('Too many requests')) {
+      emit(state.copyWith(
+        status: SigninStatus.signinerror,
+        message: 'Too many attempts. Please wait a moment and try again.',
       ));
     } else {
       emit(state.copyWith(status: SigninStatus.signinerror, message: msg));
