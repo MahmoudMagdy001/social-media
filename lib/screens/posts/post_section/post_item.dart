@@ -6,8 +6,8 @@ import 'package:facebook_clone/screens/posts/create_update_post/update_post_scre
 import 'package:facebook_clone/screens/posts/post_section/update_delete_options.dart';
 import 'package:facebook_clone/screens/posts/post_section/reacts_section.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
-import 'package:facebook_clone/widgets/comments_modal.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/comments_modal.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class PostItem extends StatefulWidget {

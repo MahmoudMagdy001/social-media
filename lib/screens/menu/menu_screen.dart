@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../main.dart'; // Ensure this path is correct
 import '../../services/auth_services/auth_service.dart'; // Ensure this path is correct
-import '../../widgets/custom_text.dart'; // Ensure this path is correct
+import '../../core/widgets/custom_text.dart'; // Ensure this path is correct
 import '../Auth/login_screen.dart'; // Ensure this path is correct
 
 class MenuScreen extends StatefulWidget {

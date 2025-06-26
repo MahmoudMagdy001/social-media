@@ -10,30 +10,6 @@ class AuthService {
 
   static const String _usersTable = 'users';
 
-  Stream<supabase.User?> get authStateChanges =>
-      _supabase.auth.onAuthStateChange.map(
-        (event) => event.session?.user,
-      );
-
-  Future<Map<String, dynamic>?> get currentUser async {
-    final supabaseUser = _supabase.auth.currentUser;
-    if (supabaseUser == null) return null;
-
-    try {
-      // Get user data from Supabase
-      final userData = await _supabase
-          .from(_usersTable)
-          .select()
-          .eq('id', supabaseUser.id)
-          .single();
-
-      return userData;
-    } catch (error) {
-      debugPrint('Error getting user data from Supabase: $error');
-    }
-    return null;
-  }
-
   Future<Map<String, dynamic>> signUpWithEmailAndPassword({
     required String email,
     required String password,

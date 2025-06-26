@@ -1,9 +1,9 @@
-import 'package:facebook_clone/screens/Auth/signup_screen.dart';
+import 'package:facebook_clone/features/signup/view/signup_view.dart';
 import 'package:facebook_clone/screens/layout/layout_screen.dart';
 import 'package:facebook_clone/services/auth_services/auth_service.dart';
-import 'package:facebook_clone/widgets/custom_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
-import 'package:facebook_clone/widgets/custom_text_field.dart';
+import 'package:facebook_clone/core/widgets/custom_button.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -168,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) {
-                                    return SignupScreen(
+                                    return SignupView(
                                       authService: authService,
                                     );
                                   },

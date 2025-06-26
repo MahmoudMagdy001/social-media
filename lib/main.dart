@@ -1,10 +1,13 @@
-import 'package:facebook_clone/consts/theme.dart';
+import 'package:facebook_clone/core/consts/theme.dart';
 import 'package:facebook_clone/screens/Auth/login_screen.dart';
 import 'package:facebook_clone/screens/layout/layout_screen.dart';
 import 'package:facebook_clone/services/auth_services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'core/utlis/app_bloc_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +22,7 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Failed to initialize Supabase: $e');
   }
+  Bloc.observer = AppBlocObserver();
 
   runApp(const MyApp());
 }

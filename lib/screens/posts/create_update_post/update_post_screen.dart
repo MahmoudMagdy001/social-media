@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
-import 'package:facebook_clone/utils/image_picker_utils.dart';
-import 'package:facebook_clone/widgets/custom_button.dart';
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
-import 'package:facebook_clone/widgets/custom_text_field.dart';
+import 'package:facebook_clone/core/utlis/image_picker_utils.dart';
+import 'package:facebook_clone/core/widgets/custom_button.dart';
+import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:facebook_clone/consts/theme.dart';
+import 'package:facebook_clone/core/consts/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 /// Screen for updating an existing post

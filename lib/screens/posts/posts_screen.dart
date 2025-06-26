@@ -1,12 +1,13 @@
 import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
-import 'package:facebook_clone/widgets/shimmer.dart';
+import 'package:facebook_clone/core/utlis/animation_navigate.dart';
+import 'package:facebook_clone/core/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../models/post_data_model.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 
 class PostsScreen extends StatefulWidget {
   const PostsScreen({super.key});
@@ -62,12 +63,11 @@ class _PostsScreenState extends State<PostsScreen>
       floatingActionButton: FloatingActionButton(
         tooltip: 'Create Post',
         onPressed: () async {
-          final result = await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => CreatePostScreen(),
-          ));
-          if (result == true) {
-            _loadPosts();
-          }
+          await navigateWithTransition(
+            context,
+            const CreatePostScreen(),
+            type: TransitionType.slideFromBottom,
+          );
         },
         child: const Icon(Icons.add),
       ),

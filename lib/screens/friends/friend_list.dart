@@ -1,9 +1,9 @@
 import 'package:facebook_clone/services/friend_services/friend_service.dart';
-import 'package:facebook_clone/widgets/custom_button.dart';
+import 'package:facebook_clone/core/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-import '../../widgets/custom_icon_button.dart';
+import '../../core/widgets/custom_icon_button.dart';
 
 class FriendsList extends StatefulWidget {
   final List<Map<String, dynamic>> friendsList;

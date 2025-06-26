@@ -1,5 +1,5 @@
 import 'package:facebook_clone/models/comments_model.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 Widget reactsSection(

@@ -1,5 +1,5 @@
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class LikesScreen extends StatefulWidget {

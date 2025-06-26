@@ -1,8 +1,8 @@
 import 'package:facebook_clone/screens/friends/friends_screen.dart';
 import 'package:facebook_clone/screens/menu/menu_screen.dart';
 import 'package:facebook_clone/screens/reels/reels_screen.dart';
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/auth_services/auth_service.dart';

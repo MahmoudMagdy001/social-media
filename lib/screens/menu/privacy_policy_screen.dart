@@ -1,4 +1,4 @@
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';

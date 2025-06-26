@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/models/comments_model.dart';
-import 'package:facebook_clone/widgets/comments_modal.dart';
+import 'package:facebook_clone/core/widgets/comments_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';

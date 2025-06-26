@@ -2,9 +2,8 @@ import 'package:facebook_clone/screens/menu/profile_header.dart';
 import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/services/friend_services/friend_service.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
-import 'package:facebook_clone/widgets/shimmer.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/post_data_model.dart';
@@ -62,20 +61,20 @@ class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            CustomIconButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              iconData: Icons.arrow_back_ios,
-            ),
-            const Text('Profile'),
-          ],
-        ),
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: Row(
+      //     children: [
+      //       CustomIconButton(
+      //         onPressed: () {
+      //           Navigator.of(context).pop();
+      //         },
+      //         iconData: Icons.arrow_back_ios,
+      //       ),
+      //       const Text('Profile'),
+      //     ],
+      //   ),
+      // ),
       body: SafeArea(
         child: _buildProfileContent(),
       ),
@@ -200,6 +199,61 @@ class _PostsListView extends StatelessWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          SliverAppBar(
+            backgroundColor: Colors.transparent,
+            expandedHeight: 150,
+            pinned: true,
+            floating: false,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.only(
+                left: 25,
+              ),
+              title: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: NetworkImage(profileImage),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      displayName,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              // background: Stack(
+              //   fit: StackFit.expand,
+              //   children: [
+              //     Image.network(
+              //       profileImage,
+              //       fit: BoxFit.cover,
+              //     ),
+              //     Container(
+              //       decoration: BoxDecoration(
+              //         gradient: LinearGradient(
+              //           colors: [
+              //             Colors.black.withOpacity(0.6),
+              //             Colors.transparent,
+              //           ],
+              //           begin: Alignment.bottomCenter,
+              //           end: Alignment.topCenter,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,7 +301,7 @@ class _PostsListView extends StatelessWidget {
               postService: postService,
               userId: userId,
               currentUserId: currentUserId,
-            )
+            ),
         ],
       ),
     );

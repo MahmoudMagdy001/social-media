@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:facebook_clone/models/reels_model.dart';
-import 'package:facebook_clone/utils/execute_with_retry.dart';
+import 'package:facebook_clone/core/utlis/execute_with_retry.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/models/comments_model.dart';

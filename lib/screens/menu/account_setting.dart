@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/services/auth_services/auth_service.dart';
-import 'package:facebook_clone/widgets/custom_button.dart';
-import 'package:facebook_clone/widgets/custom_icon_button.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
-import 'package:facebook_clone/widgets/custom_text_field.dart';
+import 'package:facebook_clone/core/widgets/custom_button.dart';
+import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:facebook_clone/utils/image_picker_utils.dart';
+import 'package:facebook_clone/core/utlis/image_picker_utils.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 

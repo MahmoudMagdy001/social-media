@@ -1,6 +1,6 @@
 import 'package:facebook_clone/screens/friends/friend_list.dart';
 import 'package:facebook_clone/services/friend_services/friend_service.dart';
-import 'package:facebook_clone/widgets/custom_text.dart';
+import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHeader extends StatelessWidget {
@@ -29,19 +29,21 @@ class ProfileHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 80,
-            backgroundImage: NetworkImage(profileImage),
-            backgroundColor: Colors.grey[300],
-          ),
-          const SizedBox(height: 10),
-          CustomText(
-            displayName,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
+          // CircleAvatar(
+          //   radius: 80,
+          //   backgroundImage: NetworkImage(profileImage),
+          //   backgroundColor: Colors.grey[300],
+          // ),
+          // const SizedBox(height: 10),
+          // CustomText(
+          //   displayName,
+          //   style: const TextStyle(
+          //     fontWeight: FontWeight.bold,
+          //     fontSize: 20,
+          //   ),
+          // ),
+
+          // const Divider(),
           Row(
             children: [
               CustomText(
@@ -50,12 +52,6 @@ class ProfileHeader extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               CustomText(friendsCount == 1 ? 'Friend' : 'Friends'),
-            ],
-          ),
-          const Divider(),
-          Row(
-            children: [
-              CustomText('Friends'),
               const Spacer(),
               if (friendsError == null)
                 InkWell(

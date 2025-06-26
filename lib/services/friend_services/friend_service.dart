@@ -1,5 +1,5 @@
 import 'package:facebook_clone/models/friends_model.dart';
-import 'package:facebook_clone/utils/execute_with_retry.dart';
+import 'package:facebook_clone/core/utlis/execute_with_retry.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
