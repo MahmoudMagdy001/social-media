@@ -1,3 +1,1 @@
-class SignupModel {
-  // TODO: Define your model
-}
+class SignupModel {}

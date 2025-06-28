@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:facebook_clone/features/account_setting/view/account_setting_view.dart';
 import 'package:facebook_clone/features/menu/viewmodel/menu_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_text.dart';
-import '../../../screens/menu/account_setting.dart';
 import '../../../screens/menu/privacy_policy_screen.dart';
 import '../../../screens/menu/profile.dart';
 import '../../layout/model/layout_model.dart';
@@ -14,147 +14,141 @@ import '../viewmodel/theme_cubit.dart';
 
 class MenuView extends StatelessWidget {
   final UserModel user;
-  const MenuView({
-    super.key,
-    required this.user,
-  });
+  const MenuView({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MenuCubit(),
-      child: BlocConsumer<MenuCubit, MenuState>(
-        listenWhen: (prev, curr) => prev.status != curr.status,
-        listener: (context, state) {},
-        builder: (context, state) {
-          final cubit = context.read<MenuCubit>();
-
-          return Scaffold(
-            body: ListView(
-              children: [
-                const SizedBox(height: 20),
-                // Profile
-                _ProfileSection(
-                  displayName: user.displayName,
-                  email: user.email,
-                  profileImageUrl: user.profileImage,
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => UserProfile(
-                        displayName: user.displayName,
-                        imageUrl: user.profileImage,
-                        userId: user.id,
-                        currentUserId: user.id,
-                      ),
-                    ));
-                  },
-                ),
-                const Divider(),
-                // Account Settings
-                _MenuItemTile(
-                  icon: Icons.account_circle,
-                  title: 'Account Settings',
-                  subtitle: 'Manage your account details',
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => AccountSetting(),
-                    ));
-                  },
-                ),
-                const Divider(),
-                // Theme
-                _AppearanceSection(
-                  onThemeChanged: (bool value) {
-                    context.read<ThemeCubit>().changeTheme(
-                          value ? ThemeMode.dark : ThemeMode.light,
-                        );
-                  },
-                ),
-                const Divider(),
-                // About
-                _AboutSection(
-                  onPrivacyPolicyTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
+        create: (context) => MenuCubit(),
+        child: BlocBuilder<MenuCubit, MenuState>(
+          builder: (context, state) {
+            final cubit = context.read<MenuCubit>();
+            return Scaffold(
+              body: ListView(
+                children: [
+                  const SizedBox(height: 20),
+                  // Profile
+                  _ProfileSection(
+                    displayName: user.displayName,
+                    email: user.email,
+                    profileImageUrl: user.profileImage,
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => UserProfile(
+                          displayName: user.displayName,
+                          imageUrl: user.profileImage,
+                          userId: user.id,
+                          currentUserId: user.id,
+                        ),
+                      ));
+                    },
+                  ),
+                  const Divider(),
+                  // Account Settings
+                  _MenuItemTile(
+                    icon: Icons.account_circle,
+                    title: 'Account Settings',
+                    subtitle: 'Manage your account details',
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => AccountSettingView(user: user),
+                      ));
+                    },
+                  ),
+                  const Divider(),
+                  // Theme
+                  _AppearanceSection(
+                    onThemeChanged: (bool value) {
+                      context.read<ThemeCubit>().changeTheme(
+                            value ? ThemeMode.dark : ThemeMode.light,
+                          );
+                    },
+                  ),
+                  const Divider(),
+                  // About
+                  _AboutSection(
+                    onPrivacyPolicyTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return PrivacyPolicyScreen();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(),
+                  // logout
+                  _MenuItemTile(
+                    icon: Icons.logout,
+                    title: 'Logout',
+                    titleColor: Colors.red[700],
+                    iconColor: Colors.red[700],
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
                         builder: (context) {
-                          return PrivacyPolicyScreen();
-                        },
-                      ),
-                    );
-                  },
-                ),
-                const Divider(),
-                // logout
-                _MenuItemTile(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  titleColor: Colors.red[700],
-                  iconColor: Colors.red[700],
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        bool isLoggingOut = false;
+                          bool isLoggingOut = false;
 
-                        return StatefulBuilder(
-                          builder: (context, setState) => AlertDialog(
-                            title: const Text('Logout'),
-                            content: isLoggingOut
-                                ? Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      CircularProgressIndicator(),
-                                      SizedBox(height: 16),
-                                      Text('Logging out...'),
-                                    ],
-                                  )
-                                : const Text(
-                                    'Are you sure you want to logout?'),
-                            actions: isLoggingOut
-                                ? []
-                                : [
-                                    TextButton(
-                                      child: const Text('Cancel'),
-                                      onPressed: () => Navigator.pop(context),
-                                    ),
-                                    TextButton(
-                                      child: const Text(
-                                        'Logout',
-                                        style: TextStyle(color: Colors.red),
+                          return StatefulBuilder(
+                            builder: (context, setState) => AlertDialog(
+                              title: const Text('Logout'),
+                              content: isLoggingOut
+                                  ? Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        CircularProgressIndicator(),
+                                        SizedBox(height: 16),
+                                        Text('Logging out...'),
+                                      ],
+                                    )
+                                  : const Text(
+                                      'Are you sure you want to logout?'),
+                              actions: isLoggingOut
+                                  ? []
+                                  : [
+                                      TextButton(
+                                        child: const Text('Cancel'),
+                                        onPressed: () => Navigator.pop(context),
                                       ),
-                                      onPressed: () async {
-                                        setState(() {
-                                          isLoggingOut = true;
-                                        });
+                                      TextButton(
+                                        child: const Text(
+                                          'Logout',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                        onPressed: () async {
+                                          setState(() {
+                                            isLoggingOut = true;
+                                          });
 
-                                        await cubit.signOut(context);
+                                          await cubit.signOut(context);
 
-                                        if (context.mounted) {
-                                          Navigator.of(context)
-                                              .pushAndRemoveUntil(
-                                            MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const SigninView()),
-                                            (route) => false,
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 20), // Added some padding at the bottom
-              ],
-            ),
-          );
-        },
-      ),
-    );
+                                          if (context.mounted) {
+                                            Navigator.of(context)
+                                                .pushAndRemoveUntil(
+                                              MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const SigninView()),
+                                              (route) => false,
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(
+                      height: 20), // Added some padding at the bottom
+                ],
+              ),
+            );
+          },
+        ));
   }
 }
 

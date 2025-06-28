@@ -1,5 +1,6 @@
 import 'package:facebook_clone/core/consts/theme.dart';
 import 'package:facebook_clone/features/layout/view/layout_view.dart';
+import 'package:facebook_clone/features/layout/viewmodel/layout_cubit.dart';
 import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
     MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => LayoutCubit()..getUser()),
       ],
       child: MyApp(initialScreen: initialScreen),
     ),

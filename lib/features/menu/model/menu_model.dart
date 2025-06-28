@@ -1,3 +1,1 @@
-class MenuModel {
-  // TODO: Define your model
-}
+class MenuModel {}

@@ -17,75 +17,72 @@ class LayoutView extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 4,
-      child: BlocProvider(
-        create: (context) => LayoutCubit()..getUser(),
-        child: BlocBuilder<LayoutCubit, LayoutState>(
-          builder: (context, state) {
-            return Scaffold(
-              appBar: AppBar(
-                centerTitle: false,
-                title: CustomText(
-                  'Social Media',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+      child: BlocBuilder<LayoutCubit, LayoutState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              centerTitle: false,
+              title: CustomText(
+                'Social Media',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              bottom: const TabBar(
+                indicator: UnderlineTabIndicator(
+                  borderSide: BorderSide(width: 4.0, color: Colors.blue),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                tabs: [
+                  Tab(icon: Icon(Icons.home_outlined, size: 32)),
+                  Tab(icon: Icon(Icons.ondemand_video_outlined, size: 32)),
+                  Tab(icon: Icon(Icons.storefront_outlined, size: 32)),
+                  Tab(icon: Icon(Icons.menu_outlined, size: 32)),
+                ],
+                indicatorSize: TabBarIndicatorSize.tab,
+                enableFeedback: null,
+                tabAlignment: null,
+                indicatorAnimation: TabIndicatorAnimation.elastic,
+              ),
+              actions: [
+                CustomIconButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => FriendsScreen(),
                       ),
+                    );
+                  },
+                  iconData: Icons.person_add_outlined,
+                  iconSize: 24,
+                  tooltip: 'Search',
                 ),
-                bottom: const TabBar(
-                  indicator: UnderlineTabIndicator(
-                    borderSide: BorderSide(width: 4.0, color: Colors.blue),
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  tabs: [
-                    Tab(icon: Icon(Icons.home_outlined, size: 32)),
-                    Tab(icon: Icon(Icons.ondemand_video_outlined, size: 32)),
-                    Tab(icon: Icon(Icons.storefront_outlined, size: 32)),
-                    Tab(icon: Icon(Icons.menu_outlined, size: 32)),
-                  ],
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  enableFeedback: null,
-                  tabAlignment: null,
-                  indicatorAnimation: TabIndicatorAnimation.elastic,
+                CustomIconButton(
+                  onPressed: () {},
+                  iconData: Icons.message,
+                  iconSize: 24,
+                  tooltip: 'Message',
                 ),
-                actions: [
-                  CustomIconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => FriendsScreen(),
-                        ),
-                      );
-                    },
-                    iconData: Icons.person_add_outlined,
-                    iconSize: 24,
-                    tooltip: 'Search',
-                  ),
-                  CustomIconButton(
-                    onPressed: () {},
-                    iconData: Icons.message,
-                    iconSize: 24,
-                    tooltip: 'Message',
-                  ),
+              ],
+            ),
+            body: SafeArea(
+              child: TabBarView(
+                children: [
+                  PostsScreen(),
+                  ReelsScreen(),
+                  const Center(child: Text('Market')),
+                  // ✅ Handle state
+                  if (state.status == LayoutStatus.userSuccess &&
+                      state.data != null)
+                    MenuView(user: state.data!)
+                  else
+                    const Center(child: CircularProgressIndicator()),
                 ],
               ),
-              body: SafeArea(
-                child: TabBarView(
-                  children: [
-                    PostsScreen(),
-                    ReelsScreen(),
-                    const Center(child: Text('Market')),
-                    // ✅ Handle state
-                    if (state.status == LayoutStatus.userSuccess &&
-                        state.data != null)
-                      MenuView(user: state.data!)
-                    else
-                      const Center(child: CircularProgressIndicator()),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
