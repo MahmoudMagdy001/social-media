@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-import '../../layout/model/layout_model.dart';
 import '../../layout/viewmodel/layout_cubit.dart';
 import 'account_setting_state.dart';
 
@@ -156,14 +155,6 @@ class AccountSettingCubit extends Cubit<AccountSettingState> {
         );
       }
 
-      final userData = await _supabase
-          .from(_usersTable)
-          .select()
-          .eq('id', _supabase.auth.currentUser!.id)
-          .single();
-
-      final UserModel user = UserModel.fromJson(userData);
-      // Refresh LayoutCubit after updating
       if (context.mounted) {
         final layoutCubit = BlocProvider.of<LayoutCubit>(context);
         await layoutCubit.getUser();
@@ -171,7 +162,6 @@ class AccountSettingCubit extends Cubit<AccountSettingState> {
 
       emit(state.copyWith(
         status: AccountSettingStatus.success,
-        data: user,
         message: 'Profile updated successfully',
         profileImage: newProfileImage,
       ));

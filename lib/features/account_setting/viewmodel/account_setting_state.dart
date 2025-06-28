@@ -43,12 +43,14 @@ class AccountSettingState {
       message: message ?? this.message,
       data: data ?? this.data,
       profileImage: profileImage ?? this.profileImage,
-      isOldPasswordVisible: isPasswordVisible ?? this.isOldPasswordVisible,
+      isOldPasswordVisible: isPasswordVisible ?? isOldPasswordVisible,
       isNewConfirmPasswordVisible:
-          isConfirmPasswordVisible ?? this.isNewConfirmPasswordVisible,
+          isConfirmPasswordVisible ?? isNewConfirmPasswordVisible,
     );
   }
 
   @override
-  String toString() => 'AccountSettingState(status: $status)';
+  String toString() {
+    return status.toString();
+  }
 }

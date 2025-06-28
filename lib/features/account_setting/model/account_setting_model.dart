@@ -1,3 +1,1 @@
-class AccountSettingModel {
-  // TODO: Define your model
-}
+class AccountSettingModel {}

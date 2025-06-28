@@ -23,14 +23,17 @@ class ActionButton extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-                onPressed: () {
-                  if (!(cubit.formKey.currentState?.validate() ?? false)) {
-                    return;
-                  }
-                  cubit.signInWithEmailAndPassword(
-                      email: cubit.emailController.text.trim(),
-                      password: cubit.passwordController.text.trim());
-                },
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        if (!(cubit.formKey.currentState?.validate() ??
+                            false)) {
+                          return;
+                        }
+                        cubit.signInWithEmailAndPassword(
+                            email: cubit.emailController.text.trim(),
+                            password: cubit.passwordController.text.trim());
+                      },
                 child: isLoading
                     ? Center(
                         child: SizedBox(

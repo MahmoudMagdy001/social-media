@@ -258,18 +258,20 @@ class SignupView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: ElevatedButton(
-              onPressed: () {
-                if (!(cubit.formKey.currentState?.validate() ?? false)) {
-                  return;
-                }
+              onPressed: isLoading
+                  ? null
+                  : () {
+                      if (!(cubit.formKey.currentState?.validate() ?? false)) {
+                        return;
+                      }
 
-                cubit.signUpWithEmailAndPassword(
-                  email: cubit.emailController.text.trim(),
-                  password: cubit.passwordController.text.trim(),
-                  displayName: cubit.displayNameController.text.trim(),
-                  profileImage: profileImage,
-                );
-              },
+                      cubit.signUpWithEmailAndPassword(
+                        email: cubit.emailController.text.trim(),
+                        password: cubit.passwordController.text.trim(),
+                        displayName: cubit.displayNameController.text.trim(),
+                        profileImage: profileImage,
+                      );
+                    },
               child: isLoading
                   ? const SizedBox(
                       width: 18,
