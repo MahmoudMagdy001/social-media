@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_text.dart';
+import '../../menu/viewmodel/theme_cubit.dart';
+import '../../menu/viewmodel/theme_state.dart';
 import '../viewmodel/signup_cubit.dart';
 import '../viewmodel/signup_state.dart';
 import 'widgets/user_image.dart';
@@ -168,6 +171,30 @@ class SignupView extends StatelessWidget {
           final File? profileImage = state.profileImage;
 
           return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+              systemOverlayStyle:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+              actions: [
+                BlocBuilder<ThemeCubit, ThemeState>(
+                  builder: (context, themeState) {
+                    final isDark = themeState.themeMode == ThemeMode.dark;
+                    return IconButton(
+                      icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+                      onPressed: () {
+                        context.read<ThemeCubit>().changeTheme(
+                              isDark ? ThemeMode.light : ThemeMode.dark,
+                            );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
             body: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),

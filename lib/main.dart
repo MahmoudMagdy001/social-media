@@ -3,10 +3,11 @@ import 'package:facebook_clone/features/layout/view/layout_view.dart';
 import 'package:facebook_clone/features/signin/view/signin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/utlis/app_bloc_observer.dart';
+import 'features/menu/viewmodel/theme_cubit.dart';
+import 'features/menu/viewmodel/theme_state.dart'; // Import ThemeCubit
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,85 +22,38 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Failed to initialize Supabase: $e');
   }
+
   Bloc.observer = AppBlocObserver();
 
-  runApp(const MyApp());
+  final session = Supabase.instance.client.auth.currentSession;
+  final Widget initialScreen =
+      session != null ? const LayoutView() : const SigninView();
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+      ],
+      child: MyApp(initialScreen: initialScreen),
+    ),
+  );
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class MyApp extends StatelessWidget {
+  final Widget? initialScreen;
 
-  static MyAppState? of(BuildContext context) =>
-      context.findAncestorStateOfType<MyAppState>();
-
-  @override
-  State<MyApp> createState() => MyAppState();
-}
-
-class MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.light;
-  static const String _themePreferenceKey = 'theme_preference';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadThemePreference();
-  }
-
-  Future<void> _loadThemePreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    String savedTheme = prefs.getString(_themePreferenceKey) ?? 'light';
-    setState(() {
-      _themeMode = savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
-    });
-  }
-
-  Future<void> _saveThemePreference(ThemeMode themeMode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _themePreferenceKey,
-      themeMode.toString().split('.').last,
-    );
-  }
-
-  void changeTheme(ThemeMode themeMode) {
-    setState(() {
-      _themeMode = themeMode;
-    });
-    _saveThemePreference(themeMode);
-  }
-
-  Future<Widget> _checkLoginStatus() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      return LayoutView();
-    } else {
-      return SigninView();
-    }
-  }
+  const MyApp({super.key, this.initialScreen});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Widget>(
-      future: _checkLoginStatus(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        //TODO add BLoc pattern
-
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, themeState) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: _themeMode,
-          home: snapshot.data!,
+          themeMode: themeState.themeMode,
+          home: initialScreen,
         );
       },
     );

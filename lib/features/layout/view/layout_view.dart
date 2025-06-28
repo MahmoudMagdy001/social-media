@@ -1,12 +1,12 @@
 import 'package:facebook_clone/features/layout/viewmodel/layout_cubit.dart';
 import 'package:facebook_clone/features/layout/viewmodel/layout_state.dart';
+import 'package:facebook_clone/features/menu/view/menu_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_icon_button.dart';
 import '../../../core/widgets/custom_text.dart';
 import '../../../screens/friends/friends_screen.dart';
-import '../../../screens/menu/menu_screen.dart';
 import '../../../screens/posts/posts_screen.dart';
 import '../../../screens/reels/reels_screen.dart';
 
@@ -77,7 +77,7 @@ class LayoutView extends StatelessWidget {
                     // ✅ Handle state
                     if (state.status == LayoutStatus.userSuccess &&
                         state.data != null)
-                      MenuScreen(user: state.data!)
+                      MenuView(user: state.data!)
                     else
                       const Center(child: CircularProgressIndicator()),
                   ],

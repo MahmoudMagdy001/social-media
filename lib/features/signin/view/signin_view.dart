@@ -1,6 +1,9 @@
 import 'package:facebook_clone/features/layout/view/layout_view.dart';
+import 'package:facebook_clone/features/menu/viewmodel/theme_cubit.dart';
+import 'package:facebook_clone/features/menu/viewmodel/theme_state.dart';
 import 'package:facebook_clone/features/signin/viewmodel/signin_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_text.dart';
@@ -134,6 +137,30 @@ class SigninView extends StatelessWidget {
           final isLoading = state.status == SigninStatus.signinloading;
 
           return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              elevation: 0,
+              systemOverlayStyle:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+              actions: [
+                BlocBuilder<ThemeCubit, ThemeState>(
+                  builder: (context, themeState) {
+                    final isDark = themeState.themeMode == ThemeMode.dark;
+                    return IconButton(
+                      icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
+                      onPressed: () {
+                        context.read<ThemeCubit>().changeTheme(
+                              isDark ? ThemeMode.light : ThemeMode.dark,
+                            );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
             body: SafeArea(
               child: Center(
                 child: Padding(

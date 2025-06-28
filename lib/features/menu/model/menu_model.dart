@@ -1,3 +1,3 @@
-class AccountSettingModel {
+class MenuModel {
   // TODO: Define your model
 }
