@@ -1,31 +1,31 @@
-enum SigninStatus {
+enum ProfileStatus {
   initial,
-  signinloading,
-  signinsuccess,
-  signinerror,
+  profileloading,
+  profilesuccess,
+  profileerror,
 }
 
-class SigninState {
-  final SigninStatus status;
+class ProfileState {
+  final ProfileStatus status;
   final String? message;
   final dynamic data;
 
   final bool isPasswordVisible;
 
-  const SigninState({
+  const ProfileState({
     required this.status,
     this.message,
     this.data,
     this.isPasswordVisible = false,
   });
 
-  SigninState copyWith({
-    SigninStatus? status,
+  ProfileState copyWith({
+    ProfileStatus? status,
     String? message,
     dynamic data,
     bool? isPasswordVisible,
   }) {
-    return SigninState(
+    return ProfileState(
       status: status ?? this.status,
       message: message ?? this.message,
       data: data ?? this.data,

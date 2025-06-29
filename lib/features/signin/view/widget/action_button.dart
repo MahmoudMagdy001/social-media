@@ -32,7 +32,8 @@ class ActionButton extends StatelessWidget {
                         }
                         cubit.signInWithEmailAndPassword(
                             email: cubit.emailController.text.trim(),
-                            password: cubit.passwordController.text.trim());
+                            password: cubit.passwordController.text.trim(),
+                            context: context);
                       },
                 child: isLoading
                     ? Center(

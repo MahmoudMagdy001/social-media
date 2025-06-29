@@ -1,3 +1,4 @@
+import 'package:facebook_clone/features/layout/viewmodel/layout_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'signin_state.dart';
@@ -24,6 +25,7 @@ class SigninCubit extends Cubit<SigninState> {
   Future<void> signInWithEmailAndPassword({
     required String email,
     required String password,
+    required BuildContext context,
   }) async {
     try {
       emit(state.copyWith(status: SigninStatus.signinloading));
@@ -32,6 +34,9 @@ class SigninCubit extends Cubit<SigninState> {
         email: email,
         password: password,
       );
+      if (context.mounted) {
+        context.read<LayoutCubit>().getUser();
+      }
 
       if (response.user == null) {
         emit(state.copyWith(
@@ -76,19 +81,6 @@ class SigninCubit extends Cubit<SigninState> {
       ));
     } else {
       emit(state.copyWith(status: SigninStatus.signinerror, message: msg));
-    }
-  }
-
-  Future<void> signOut() async {
-    try {
-      emit(state.copyWith(status: SigninStatus.signoutloading));
-      await _supabase.auth.signOut();
-      emit(state.copyWith(status: SigninStatus.signoutsuccess));
-    } catch (e) {
-      emit(state.copyWith(
-        status: SigninStatus.signouterror,
-        message: 'An unexpected error occurred. $e',
-      ));
     }
   }
 

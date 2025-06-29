@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/utlis/app_bloc_observer.dart';
 import 'features/menu/viewmodel/theme_cubit.dart';
-import 'features/menu/viewmodel/theme_state.dart'; // Import ThemeCubit
+import 'features/menu/viewmodel/theme_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

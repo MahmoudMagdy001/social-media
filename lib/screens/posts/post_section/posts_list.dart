@@ -1,3 +1,4 @@
+import 'package:facebook_clone/features/layout/model/layout_model.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
 import 'package:facebook_clone/screens/posts/post_section/post_item.dart';
@@ -10,7 +11,7 @@ class PostsList extends StatelessWidget {
   final void Function() onRefresh;
   final PostService postService;
   final String userId;
-  final String currentUserId;
+  final UserModel user;
 
   const PostsList({
     super.key,
@@ -19,7 +20,7 @@ class PostsList extends StatelessWidget {
     required this.onRefresh,
     required this.postService,
     required this.userId,
-    required this.currentUserId,
+    required this.user,
   });
 
   @override
@@ -38,7 +39,7 @@ class PostsList extends StatelessWidget {
           likesStream = postService.getLikesForPost(postId: post.documentId);
           hasUserLikedPost = postService.hasUserLikedPost(
             postId: post.documentId,
-            userId: currentUserId,
+            userId: user.id,
           );
 
           return Column(
@@ -53,7 +54,7 @@ class PostsList extends StatelessWidget {
                 hasUserLikedPost: hasUserLikedPost,
                 update: onRefresh,
                 userId: userId,
-                currentUserId: currentUserId,
+                user: user,
               ),
               if (index < posts.length - 1)
                 const Padding(

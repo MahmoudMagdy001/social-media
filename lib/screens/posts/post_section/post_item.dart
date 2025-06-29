@@ -1,7 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:facebook_clone/features/layout/model/layout_model.dart';
+import 'package:facebook_clone/features/profile/view/profile_view.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
-import 'package:facebook_clone/screens/menu/profile.dart';
 import 'package:facebook_clone/screens/posts/create_update_post/update_post_screen.dart';
 import 'package:facebook_clone/screens/posts/post_section/update_delete_options.dart';
 import 'package:facebook_clone/screens/posts/post_section/reacts_section.dart';
@@ -11,6 +12,7 @@ import 'package:facebook_clone/core/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
 
 class PostItem extends StatefulWidget {
+  final UserModel user;
   final PostDataModel postData;
   final VoidCallback? onPostDeleted;
   final PostService postService;
@@ -19,7 +21,6 @@ class PostItem extends StatefulWidget {
   final Stream<bool> hasUserLikedPost;
   final void Function()? update;
   final String userId;
-  final String currentUserId;
 
   const PostItem({
     super.key,
@@ -31,7 +32,7 @@ class PostItem extends StatefulWidget {
     required this.hasUserLikedPost,
     this.update,
     required this.userId,
-    required this.currentUserId,
+    required this.user,
   });
 
   @override
@@ -53,7 +54,7 @@ class _PostItemState extends State<PostItem> {
   Future<void> _deletePost() async {
     await widget.postService.deletePost(
       postId: widget.postData.postId,
-      userId: widget.currentUserId,
+      userId: widget.user.id,
       isReel: false,
     );
     widget.onPostDeleted?.call();
@@ -66,11 +67,11 @@ class _PostItemState extends State<PostItem> {
     liked
         ? await widget.postService.removeLike(
             postId: widget.postData.postId,
-            userId: widget.currentUserId,
+            userId: widget.user.id,
           )
         : await widget.postService.addLike(
             postId: widget.postData.postId,
-            userId: widget.currentUserId,
+            userId: widget.user.id,
           );
   }
 
@@ -92,8 +93,10 @@ class _PostItemState extends State<PostItem> {
               widget.update!();
             }
           },
-          currentUserUid: widget.currentUserId,
           userId: widget.postData.userId,
+          user: widget.user,
+          displayName: widget.postData.displayName,
+          profileImage: widget.postData.profileImageUrl,
         ),
         const SizedBox(height: 12),
         if (widget.postData.postText.isNotEmpty)
@@ -241,20 +244,24 @@ class _PostUserSection extends StatelessWidget {
   final PostDataModel postData;
   final VoidCallback onDelete;
   final VoidCallback onUpdate;
-  final String? currentUserUid;
   final String userId;
+  final UserModel user;
+  final String displayName;
+  final String profileImage;
 
   const _PostUserSection({
     required this.postData,
     required this.onDelete,
     required this.onUpdate,
-    required this.currentUserUid,
     required this.userId,
+    required this.user,
+    required this.displayName,
+    required this.profileImage,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isOwner = postData.userId == currentUserUid;
+    final isOwner = postData.userId == user.id;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -267,11 +274,11 @@ class _PostUserSection extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) {
-                    return UserProfile(
-                      displayName: postData.displayName,
-                      imageUrl: postData.profileImageUrl,
+                    return UserProfileView(
+                      currentUser: user,
                       userId: userId,
-                      currentUserId: currentUserUid!,
+                      displayName: displayName,
+                      profileImage: profileImage,
                     );
                   },
                 ),

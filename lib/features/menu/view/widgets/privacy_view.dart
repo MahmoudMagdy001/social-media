@@ -3,47 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class PrivacyPolicyScreen extends StatefulWidget {
-  const PrivacyPolicyScreen({super.key});
-
-  @override
-  State<PrivacyPolicyScreen> createState() => _PrivacyPolicyScreenState();
-}
-
-class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      lowerBound: 0.95,
-      upperBound: 1.0,
-    );
-
-    _scaleAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+class PrivacyView extends StatelessWidget {
+  const PrivacyView({super.key});
 
   Future<void> openGmailApp(BuildContext context) async {
     final Uri gmailUri = Uri(
       scheme: 'mailto',
       path: 'mahmodmansour2001@gmail.com',
       query: Uri.encodeFull(
-          'subject=Privacy Inquiry&body=Hello, I have a question regarding your privacy policy.'),
+        'subject=Privacy Inquiry&body=Hello, I have a question regarding your privacy policy.',
+      ),
     );
 
     try {
@@ -81,14 +50,15 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
     });
   }
 
-  Future<void> openWhatsApp() async {
+  Future<void> openWhatsApp(BuildContext context) async {
     final Uri whatsappUri = Uri.parse(
-        'https://wa.me/201555798495?text=Hello Mahmoud, I have a question about your app.');
+      'https://wa.me/201555798495?text=Hello Mahmoud, I have a question about your app.',
+    );
 
     if (await canLaunchUrl(whatsappUri)) {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
     } else {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('WhatsApp is not installed')),
         );
@@ -109,10 +79,9 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
         title: Row(
           children: [
             CustomIconButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                iconData: Icons.arrow_back_ios),
+              onPressed: () => Navigator.of(context).pop(),
+              iconData: Icons.arrow_back_ios,
+            ),
             const Text('Privacy Policy'),
           ],
         ),
@@ -170,38 +139,19 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen>
             _buildParagraph(
                 'If you have questions about this privacy policy, please contact us at:'),
             const SizedBox(height: 12),
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: GestureDetector(
-                onTapDown: (_) => _animationController.reverse(),
-                onTapUp: (_) => _animationController
-                    .forward()
-                    .then((_) => openGmailApp(context)),
-                onTapCancel: () => _animationController.forward(),
-                child: const Text(
-                  'Contact on Gmail',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 16,
-                  ),
-                ),
+            GestureDetector(
+              onTap: () => openGmailApp(context),
+              child: const Text(
+                'Contact on Gmail',
+                style: TextStyle(color: Colors.blue, fontSize: 16),
               ),
             ),
             const SizedBox(height: 12),
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: GestureDetector(
-                onTapDown: (_) => _animationController.reverse(),
-                onTapUp: (_) =>
-                    _animationController.forward().then((_) => openWhatsApp()),
-                onTapCancel: () => _animationController.forward(),
-                child: const Text(
-                  'Contact on WhatsApp',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 16,
-                  ),
-                ),
+            GestureDetector(
+              onTap: () => openWhatsApp(context),
+              child: const Text(
+                'Contact on WhatsApp',
+                style: TextStyle(color: Colors.green, fontSize: 16),
               ),
             ),
             const SizedBox(height: 24),

@@ -1,16 +1,17 @@
+import 'package:facebook_clone/features/layout/model/layout_model.dart';
 import 'package:facebook_clone/screens/posts/create_update_post/create_post_screen.dart';
 import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
 import 'package:facebook_clone/core/utlis/animation_navigate.dart';
 import 'package:facebook_clone/core/widgets/shimmer.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../models/post_data_model.dart';
 import 'package:facebook_clone/services/post_services/post_service.dart';
 import 'package:facebook_clone/core/widgets/custom_text.dart';
 
 class PostsScreen extends StatefulWidget {
-  const PostsScreen({super.key});
+  final UserModel user;
+  const PostsScreen({super.key, required this.user});
 
   @override
   State<PostsScreen> createState() => _PostsScreenState();
@@ -20,7 +21,7 @@ class _PostsScreenState extends State<PostsScreen>
     with AutomaticKeepAliveClientMixin<PostsScreen> {
   final PostService _postService = PostService();
   late Future<List<PostDataModel>> _postsFuture;
-  final user = supabase.Supabase.instance.client.auth.currentUser;
+  // final user = supabase.Supabase.instance.client.auth.currentUser;
 
   @override
   void initState() {
@@ -30,7 +31,7 @@ class _PostsScreenState extends State<PostsScreen>
 
   void _loadPosts() {
     setState(() {
-      _postsFuture = _postService.getFriendsPosts(user!.id);
+      _postsFuture = _postService.getFriendsPosts(widget.user.id);
     });
   }
 
@@ -99,9 +100,9 @@ class _PostsScreenState extends State<PostsScreen>
               posts: posts,
               onRefresh: _handleRefresh,
               postService: _postService,
-              userId: user!.id,
+              userId: widget.user.id,
               onPostDeleted: _loadPosts,
-              currentUserId: user!.id,
+              user: widget.user,
             )
           ],
         );

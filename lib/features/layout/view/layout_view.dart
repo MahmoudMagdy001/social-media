@@ -69,13 +69,17 @@ class LayoutView extends StatelessWidget {
             body: SafeArea(
               child: TabBarView(
                 children: [
-                  PostsScreen(),
+                  if (state.status == LayoutStatus.userSuccess &&
+                      state.data != null)
+                    PostsScreen(
+                      user: state.data!,
+                    ),
                   ReelsScreen(),
                   const Center(child: Text('Market')),
                   // ✅ Handle state
                   if (state.status == LayoutStatus.userSuccess &&
                       state.data != null)
-                    MenuView(user: state.data!)
+                    MenuView(currentUser: state.data!)
                   else
                     const Center(child: CircularProgressIndicator()),
                 ],

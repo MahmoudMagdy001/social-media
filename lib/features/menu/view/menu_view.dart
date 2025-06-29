@@ -1,20 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:facebook_clone/features/account_setting/view/account_setting_view.dart';
+import 'package:facebook_clone/features/menu/view/widgets/privacy_view.dart';
 import 'package:facebook_clone/features/menu/viewmodel/menu_cubit.dart';
+import 'package:facebook_clone/features/profile/view/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_text.dart';
-import '../../../screens/menu/privacy_policy_screen.dart';
-import '../../../screens/menu/profile.dart';
 import '../../layout/model/layout_model.dart';
 import '../../signin/view/signin_view.dart';
 import '../viewmodel/menu_state.dart';
 import '../viewmodel/theme_cubit.dart';
 
 class MenuView extends StatelessWidget {
-  final UserModel user;
-  const MenuView({super.key, required this.user});
+  final UserModel currentUser;
+  const MenuView({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -29,16 +29,16 @@ class MenuView extends StatelessWidget {
                   const SizedBox(height: 20),
                   // Profile
                   _ProfileSection(
-                    displayName: user.displayName,
-                    email: user.email,
-                    profileImageUrl: user.profileImage,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email,
+                    profileImageUrl: currentUser.profileImage,
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => UserProfile(
-                          displayName: user.displayName,
-                          imageUrl: user.profileImage,
-                          userId: user.id,
-                          currentUserId: user.id,
+                        builder: (context) => UserProfileView(
+                          currentUser: currentUser,
+                          userId: currentUser.id,
+                          displayName: currentUser.displayName,
+                          profileImage: currentUser.profileImage,
                         ),
                       ));
                     },
@@ -51,7 +51,8 @@ class MenuView extends StatelessWidget {
                     subtitle: 'Manage your account details',
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => AccountSettingView(user: user),
+                        builder: (context) =>
+                            AccountSettingView(user: currentUser),
                       ));
                     },
                   ),
@@ -71,7 +72,7 @@ class MenuView extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) {
-                            return PrivacyPolicyScreen();
+                            return PrivacyView();
                           },
                         ),
                       );
