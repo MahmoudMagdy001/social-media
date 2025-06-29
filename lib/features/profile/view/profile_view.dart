@@ -183,6 +183,7 @@ class _PostsListView extends StatelessWidget {
               postService: postService,
               userId: userId,
               user: currentUser,
+              onPostDeleted: onPostDeleted,
             ),
         ],
       ),

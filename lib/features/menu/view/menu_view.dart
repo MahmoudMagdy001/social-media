@@ -6,7 +6,6 @@ import 'package:facebook_clone/features/profile/view/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/widgets/custom_text.dart';
 import '../../layout/model/layout_model.dart';
 import '../../signin/view/signin_view.dart';
 import '../viewmodel/menu_state.dart';
@@ -164,7 +163,7 @@ class _MenuSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: CustomText(
+      child: Text(
         title,
         style: TextStyle(
           fontSize: 16,
@@ -235,8 +234,8 @@ class _MenuItemTile extends StatelessWidget {
       children: [
         ListTile(
           leading: Icon(icon, color: iconColor),
-          title: CustomText(title, style: TextStyle(color: titleColor)),
-          subtitle: subtitle != null ? CustomText(subtitle!) : null,
+          title: Text(title, style: TextStyle(color: titleColor)),
+          subtitle: subtitle != null ? Text(subtitle!) : null,
           trailing: (title != 'Logout') // Avoid arrow for logout
               ? const Icon(Icons.arrow_forward_ios)
               : null,
@@ -262,8 +261,8 @@ class _AppearanceSection extends StatelessWidget {
       children: [
         _MenuSectionHeader(title: 'Appearance'),
         SwitchListTile(
-          title: const CustomText('Dark Mode'),
-          subtitle: CustomText(isDarkMode ? 'Enabled' : 'Disabled'),
+          title: const Text('Dark Mode'),
+          subtitle: Text(isDarkMode ? 'Enabled' : 'Disabled'),
           value: isDarkMode,
           onChanged: onThemeChanged,
           // Pass the callback directly
@@ -289,15 +288,15 @@ class _AboutSection extends StatelessWidget {
         _MenuSectionHeader(title: 'About'),
         ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const CustomText('App Version'),
-          subtitle: const CustomText('1.0.0'),
+          title: const Text('App Version'),
+          subtitle: const Text('1.0.0'),
           onTap: () {
             // Could show an About Dialog
           },
         ),
         ListTile(
           leading: const Icon(Icons.policy),
-          title: const CustomText('Privacy Policy'),
+          title: const Text('Privacy Policy'),
           onTap: onPrivacyPolicyTap,
         ),
       ],
