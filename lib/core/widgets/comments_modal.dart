@@ -1,6 +1,7 @@
 import 'package:facebook_clone/models/comments_model.dart';
-import 'package:facebook_clone/screens/posts/comments_likes_screens/comments_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../../features/comments/view/comments_view.dart';
 
 Future<dynamic> showCommentsModal(
   BuildContext context, {

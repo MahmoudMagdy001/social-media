@@ -1,8 +1,8 @@
 import 'package:facebook_clone/features/layout/model/layout_model.dart';
+import 'package:facebook_clone/features/posts/view/widgets/post_item.dart';
 import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/models/post_data_model.dart';
-import 'package:facebook_clone/screens/posts/post_section/post_item.dart';
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 import 'package:flutter/material.dart';
 
 class PostsList extends StatelessWidget {

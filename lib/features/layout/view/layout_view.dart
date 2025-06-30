@@ -6,9 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/custom_icon_button.dart';
 import '../../../core/widgets/custom_text.dart';
-import '../../../screens/friends/friends_screen.dart';
-import '../../../screens/posts/posts_screen.dart';
-import '../../../screens/reels/reels_screen.dart';
+import '../../friends/view/friends_view.dart';
+import '../../posts/view/posts_view.dart';
+import '../../reels/view/reels_view.dart';
 
 class LayoutView extends StatelessWidget {
   const LayoutView({super.key});

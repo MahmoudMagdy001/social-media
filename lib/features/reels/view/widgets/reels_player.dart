@@ -3,9 +3,9 @@ import 'package:facebook_clone/models/comments_model.dart';
 import 'package:facebook_clone/core/widgets/comments_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 
-import '../../models/reels_model.dart';
+import '../../../../models/reels_model.dart';
 
 class ReelsPlayerWidget extends StatefulWidget {
   final PostService postService;

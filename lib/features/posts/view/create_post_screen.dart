@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 import 'package:facebook_clone/core/utlis/image_picker_utils.dart';
 import 'package:facebook_clone/core/widgets/custom_button.dart';
 import 'package:facebook_clone/core/widgets/custom_icon_button.dart';
@@ -10,7 +10,7 @@ import 'package:facebook_clone/core/widgets/video_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-import '../../../core/consts/theme.dart';
+import '../../../../core/consts/theme.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({

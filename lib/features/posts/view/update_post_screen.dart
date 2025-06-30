@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:facebook_clone/models/post_data_model.dart';
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 import 'package:facebook_clone/core/utlis/image_picker_utils.dart';
 import 'package:facebook_clone/core/widgets/custom_button.dart';
 import 'package:facebook_clone/core/widgets/custom_icon_button.dart';

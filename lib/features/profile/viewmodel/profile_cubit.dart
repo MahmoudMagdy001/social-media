@@ -1,4 +1,4 @@
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/post_data_model.dart';

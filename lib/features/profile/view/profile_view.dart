@@ -3,11 +3,11 @@ import 'package:facebook_clone/core/widgets/shimmer.dart';
 import 'package:facebook_clone/features/layout/model/layout_model.dart';
 import 'package:facebook_clone/features/profile/viewmodel/profile_cubit.dart';
 import 'package:facebook_clone/features/profile/viewmodel/profile_state.dart';
-import 'package:facebook_clone/screens/posts/post_section/posts_list.dart';
-import 'package:facebook_clone/services/post_services/post_service.dart';
+import 'package:facebook_clone/core/services/post_services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../models/post_data_model.dart';
+import '../../posts/view/widgets/posts_list.dart';
 
 class UserProfileView extends StatelessWidget {
   final UserModel currentUser;
@@ -263,7 +263,7 @@ class ProfileHeader extends StatelessWidget {
                     children: [
                       Container(
                         width: 100,
-                        height: 120,
+                        height: 115,
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           image: DecorationImage(
